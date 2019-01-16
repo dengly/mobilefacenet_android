@@ -1,6 +1,7 @@
 /*
 created by L. 2018.05.16
 */
+#include <math.h>
 
 #include "recognize.h"
 
