@@ -12,7 +12,9 @@
 using namespace Face;
 #define TAG "DetectSo"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
+// 人脸检测对象指针
 static Detect *mDetect;
+// 人脸比对对象指针
 static Recognize *mRecognize;
 
 //sdk是否初始化成功
@@ -52,7 +54,7 @@ Java_com_example_l_mobilefacenet_Face_FaceModelInit(JNIEnv *env, jobject instanc
 
     //没判断是否正确导入，懒得改了
     mDetect = new Detect(tFaceModelDir);
-    mRecognize=new Recognize(tFaceModelDir);
+    mRecognize = new Recognize(tFaceModelDir);
     mDetect->SetThreadNum(2);
     mRecognize->SetThreadNum(2);
 
@@ -100,7 +102,8 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance,
         return NULL;
     }
 
-    int32_t minFaceSize = 80;
+//    int32_t minFaceSize = 80;
+    int32_t minFaceSize = 112;
     mDetect->SetMinFace(minFaceSize);
 
     unsigned char *faceImageCharDate = (unsigned char *) imageDate;
@@ -114,6 +117,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance,
     }
 
     std::vector<Bbox> finalBbox;
+    // 开始人脸检测
     mDetect->start(ncnn_img, finalBbox);
 
     int32_t num_face = static_cast<int32_t>(finalBbox.size());
@@ -128,7 +132,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance,
         faceInfo[14 * i + 2] = finalBbox[i].y1;//top
         faceInfo[14 * i + 3] = finalBbox[i].x2;//right
         faceInfo[14 * i + 4] = finalBbox[i].y2;//bottom
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 10; j++) { // 5个关键点
             faceInfo[14 * i + 5 + j] = static_cast<int>(finalBbox[i].ppoint[j]);
         }
     }
@@ -140,6 +144,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance,
     env->ReleaseByteArrayElements(imageDate_, imageDate, 0);
     return tFaceInfo;
 }
+
 
 JNIEXPORT jboolean JNICALL
 Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject instance) {
@@ -157,8 +162,8 @@ Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject insta
     return tDetectionUnInit;
 
 }
-}
-extern "C"
+
+
 JNIEXPORT jdouble JNICALL
 Java_com_example_l_mobilefacenet_Face_FaceRecognize(JNIEnv *env, jobject instance,
                                                     jbyteArray faceDate1_, jint w1, jint h1,
@@ -171,7 +176,7 @@ Java_com_example_l_mobilefacenet_Face_FaceRecognize(JNIEnv *env, jobject instanc
     unsigned char *faceImageCharDate1 = (unsigned char*)faceDate1;
     unsigned char *faceImageCharDate2 = (unsigned char*)faceDate2;
 
-    //没进行对齐操作，且以下对图像缩放的操作方法对结果影响较大。可改进空间很大，有能力的自己改改
+    // 没进行对齐操作，且以下对图像缩放的操作方法对结果影响较大。可改进空间很大，有能力的自己改改
     ncnn::Mat ncnn_img1 = ncnn::Mat::from_pixels_resize(faceImageCharDate1, ncnn::Mat::PIXEL_RGBA2RGB, w1, h1,112,112);
     ncnn::Mat ncnn_img2 = ncnn::Mat::from_pixels_resize(faceImageCharDate2, ncnn::Mat::PIXEL_RGBA2RGB, w2, h2,112,112);
     std::vector<float> feature1,feature2;
@@ -182,4 +187,5 @@ Java_com_example_l_mobilefacenet_Face_FaceRecognize(JNIEnv *env, jobject instanc
     env->ReleaseByteArrayElements(faceDate2_, faceDate2, 0);
     similar=calculSimilar(feature1, feature2);
     return similar;
+}
 }

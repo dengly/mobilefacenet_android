@@ -45,7 +45,7 @@ namespace Face {
 		std::vector<Bbox> firstBbox_, secondBbox_, thirdBbox_;
 		int img_w, img_h;
 
-	private://���ֿɵ�����
+	private:
 		const float threshold[3] = { 0.8f, 0.8f, 0.6f };
 		int minsize = 40;
 		const float pre_facetor = 0.709f;
