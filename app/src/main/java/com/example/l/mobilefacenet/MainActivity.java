@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,6 +19,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.l.mobilefacenet.util.FileUtil;
+import com.example.l.mobilefacenet.util.ImageUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -62,14 +66,14 @@ public class MainActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
 
         try {
-            copyBigDataToSD("det1.bin");
-            copyBigDataToSD("det2.bin");
-            copyBigDataToSD("det3.bin");
-            copyBigDataToSD("det1.param");
-            copyBigDataToSD("det2.param");
-            copyBigDataToSD("det3.param");
-            copyBigDataToSD("recognition.bin");
-            copyBigDataToSD("recognition.param");
+            FileUtil.copyBigDataToSD(this.getAssets(), "det1.bin");
+            FileUtil.copyBigDataToSD(this.getAssets(), "det2.bin");
+            FileUtil.copyBigDataToSD(this.getAssets(), "det3.bin");
+            FileUtil.copyBigDataToSD(this.getAssets(), "det1.param");
+            FileUtil.copyBigDataToSD(this.getAssets(), "det2.param");
+            FileUtil.copyBigDataToSD(this.getAssets(), "det3.param");
+            FileUtil.copyBigDataToSD(this.getAssets(), "recognition.bin");
+            FileUtil.copyBigDataToSD(this.getAssets(), "recognition.param");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,32 +106,30 @@ public class MainActivity extends AppCompatActivity {
                 //detect
                 int width = yourSelectedImage1.getWidth();
                 int height = yourSelectedImage1.getHeight();
-                byte[] imageDate = getPixelsRGBA(yourSelectedImage1);
+                byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
 
                 long timeDetectFace = System.currentTimeMillis();
-                int faceInfo[]=mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
-                if(faceInfo !=null && faceInfo.length>1){
+                if(faceInfos !=null && faceInfos.length>0){
                     faceInfo1.setText("pic1 detect time:"+timeDetectFace);
-                    int faceNum = faceInfo[0];
-                    Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceNum );
+                    Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceInfos.length );
                     Bitmap drawBitmap = yourSelectedImage1.copy(Bitmap.Config.ARGB_8888, true);
-                    for(int i=0;i<faceInfo[0];i++) {
-                        int left, top, right, bottom;
+                    for(int i=0;i<faceInfos.length; i++) {
                         Canvas canvas = new Canvas(drawBitmap);
                         Paint paint = new Paint();
-                        left = faceInfo[1+14*i];
-                        top = faceInfo[2+14*i];
-                        right = faceInfo[3+14*i];
-                        bottom = faceInfo[4+14*i];
                         paint.setColor(Color.BLUE);
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setStrokeWidth(5);
-                        canvas.drawRect(left, top, right, bottom, paint);
+                        canvas.drawRect(faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getRight(), faceInfos[i].getBottom(), paint);
+                        for(Point p : faceInfos[i].getPoints()){
+                            paint.setColor(Color.RED);
+                            canvas.drawPoint(p.x,p.y,paint);
+                        }
                     }
                     imageView1.setImageBitmap(drawBitmap);
-                    faceImage1 = Bitmap.createBitmap(yourSelectedImage1,faceInfo[1],faceInfo[2],faceInfo[3]-faceInfo[1],faceInfo[4]-faceInfo[2]);
+                    faceImage1 = Bitmap.createBitmap(yourSelectedImage1, faceInfos[0].getLeft(), faceInfos[0].getTop(), faceInfos[0].getWidth(), faceInfos[0].getHeight());
                 }else{
                     faceInfo1.setText("no face");
                 }
@@ -157,32 +159,30 @@ public class MainActivity extends AppCompatActivity {
                 faceImage2=null;
                 int width = yourSelectedImage2.getWidth();
                 int height = yourSelectedImage2.getHeight();
-                byte[] imageDate = getPixelsRGBA(yourSelectedImage2);
+                byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage2);
 
                 long timeDetectFace = System.currentTimeMillis();
-                int faceInfo[]=mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
-                if(faceInfo !=null && faceInfo.length>1){
+                if(faceInfos !=null && faceInfos.length>0){
                     faceInfo2.setText("pic2 detect time:"+timeDetectFace);
-                    int faceNum = faceInfo[0];
-                    Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceNum );
+                    Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceInfos.length );
                     Bitmap drawBitmap = yourSelectedImage2.copy(Bitmap.Config.ARGB_8888, true);
-                    for(int i=0;i<faceInfo[0];i++) {
-                        int left, top, right, bottom;
+                    for(int i=0;i<faceInfos.length; i++) {
                         Canvas canvas = new Canvas(drawBitmap);
                         Paint paint = new Paint();
-                        left = faceInfo[1+14*i];
-                        top = faceInfo[2+14*i];
-                        right = faceInfo[3+14*i];
-                        bottom = faceInfo[4+14*i];
-                        paint.setColor(Color.GREEN);
+                        paint.setColor(Color.BLUE);
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setStrokeWidth(5);
-                        canvas.drawRect(left, top, right, bottom, paint);
+                        canvas.drawRect(faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getRight(), faceInfos[i].getBottom(), paint);
+                        for(Point p : faceInfos[i].getPoints()){
+                            paint.setColor(Color.RED);
+                            canvas.drawPoint(p.x,p.y,paint);
+                        }
                     }
                     imageView2.setImageBitmap(drawBitmap);
-                    faceImage2 = Bitmap.createBitmap(yourSelectedImage2,faceInfo[1],faceInfo[2],faceInfo[3]-faceInfo[1],faceInfo[4]-faceInfo[2]);
+                    faceImage2 = Bitmap.createBitmap(yourSelectedImage2, faceInfos[0].getLeft(), faceInfos[0].getTop(), faceInfos[0].getWidth(), faceInfos[0].getHeight());
                 }else{
                     faceInfo2.setText("no face");
                 }
@@ -200,8 +200,8 @@ public class MainActivity extends AppCompatActivity {
                     cmpResult.setText("no enough face,return");
                     return;
                 }
-                byte[] faceDate1 = getPixelsRGBA(faceImage1);
-                byte[] faceDate2 = getPixelsRGBA(faceImage2);
+                byte[] faceDate1 = ImageUtil.getPixelsRGBA(faceImage1);
+                byte[] faceDate2 = ImageUtil.getPixelsRGBA(faceImage2);
 
                 long t0 = System.currentTimeMillis();
                 float[] faceFeature1 = mFace.faceFeature(faceDate1,faceImage1.getWidth(),faceImage1.getHeight(),Face.ColorType.R8G8B8A8);
@@ -237,13 +237,13 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 if (requestCode == SELECT_IMAGE1) {
-                    Bitmap bitmap = decodeUri(selectedImage);
+                    Bitmap bitmap = ImageUtil.decodeUri(this,selectedImage);
                     Bitmap rgba = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                     yourSelectedImage1 = rgba;
                     imageView1.setImageBitmap(yourSelectedImage1);
                 }
                 else if (requestCode == SELECT_IMAGE2) {
-                    Bitmap bitmap = decodeUri(selectedImage);
+                    Bitmap bitmap = ImageUtil.decodeUri(this,selectedImage);
                     Bitmap rgba = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                     yourSelectedImage2 = rgba;
                     imageView2.setImageBitmap(yourSelectedImage2);
@@ -253,76 +253,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         }
-    }
-
-
-    private Bitmap decodeUri(Uri selectedImage) throws FileNotFoundException {
-        // Decode image size
-        BitmapFactory.Options o = new BitmapFactory.Options();
-        o.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(getContentResolver().openInputStream(selectedImage), null, o);
-
-        // The new size we want to scale to
-        final int REQUIRED_SIZE = 400;
-
-        // Find the correct scale value. It should be the power of 2.
-        int width_tmp = o.outWidth, height_tmp = o.outHeight;
-        int scale = 1;
-        while (true) {
-            if (width_tmp / 2 < REQUIRED_SIZE
-                    || height_tmp / 2 < REQUIRED_SIZE) {
-                break;
-            }
-            width_tmp /= 2;
-            height_tmp /= 2;
-            scale *= 2;
-        }
-
-        // Decode with inSampleSize
-        BitmapFactory.Options o2 = new BitmapFactory.Options();
-        o2.inSampleSize = scale;
-        return BitmapFactory.decodeStream(getContentResolver().openInputStream(selectedImage), null, o2);
-    }
-
-    //get pixels
-    private byte[] getPixelsRGBA(Bitmap image) {
-        // calculate how many bytes our image consists of
-        int bytes = image.getByteCount();
-        ByteBuffer buffer = ByteBuffer.allocate(bytes); // Create a new buffer
-        image.copyPixelsToBuffer(buffer); // Move the byte data to the buffer
-        byte[] temp = buffer.array(); // Get the underlying array containing the
-
-        return temp;
-    }
-
-    private void copyBigDataToSD(String strOutFileName) throws IOException {
-        Log.i(TAG, "start copy file " + strOutFileName);
-        File sdDir = Environment.getExternalStorageDirectory();//get directory
-        File file = new File(sdDir.toString()+"/facem/");
-        if (!file.exists()) {
-            file.mkdir();
-        }
-
-        String tmpFile = sdDir.toString()+"/facem/" + strOutFileName;
-        File f = new File(tmpFile);
-        if (f.exists()) {
-            Log.i(TAG, "file exists " + strOutFileName);
-            return;
-        }
-        InputStream myInput;
-        java.io.OutputStream myOutput = new FileOutputStream(sdDir.toString()+"/facem/"+ strOutFileName);
-        myInput = this.getAssets().open(strOutFileName);
-        byte[] buffer = new byte[1024];
-        int length = myInput.read(buffer);
-        while (length > 0) {
-            myOutput.write(buffer, 0, length);
-            length = myInput.read(buffer);
-        }
-        myOutput.flush();
-        myInput.close();
-        myOutput.close();
-        Log.i(TAG, "end copy file " + strOutFileName);
-
     }
 
 }

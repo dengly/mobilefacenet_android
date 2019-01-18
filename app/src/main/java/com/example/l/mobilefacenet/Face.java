@@ -1,5 +1,10 @@
 package com.example.l.mobilefacenet;
 
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
+
 /**
  * Created by L on 2018/6/11.
  */
@@ -16,6 +21,38 @@ public class Face {
         }
         public int getCode(){
             return code;
+        }
+    }
+    public class FaceInfo {
+        private int left, top, right, bottom;
+        private Point[] points;
+
+        public int getWidth() {
+            return right - left;
+        }
+
+        public int getHeight() {
+            return bottom - top;
+        }
+
+        public int getLeft() {
+            return left;
+        }
+
+        public int getTop() {
+            return top;
+        }
+
+        public int getRight() {
+            return right;
+        }
+
+        public int getBottom() {
+            return bottom;
+        }
+
+        public Point[] getPoints() {
+            return points;
         }
     }
 
@@ -67,11 +104,30 @@ public class Face {
      * @param colorType 图片颜色类型
      * @return 返回人脸数量、人脸位置坐标、5个关键点
      */
-    public int[] faceDetect(byte[] imageDate, int imageWidth , int imageHeight, ColorType colorType){
+    public FaceInfo[] faceDetect(byte[] imageDate, int imageWidth , int imageHeight, ColorType colorType){
         if(!isInit){
             throw new RuntimeException("人脸识别引擎未初始化");
         }
-        return FaceDetect(pFaceEngine, imageDate, imageWidth , imageHeight, colorType.code);
+        int[] faceInfo = FaceDetect(pFaceEngine, imageDate, imageWidth , imageHeight, colorType.code);
+        if(faceInfo==null || faceInfo[0] <= 0){
+            return null;
+        }
+        FaceInfo[] faceInfos = new FaceInfo[faceInfo[0]];
+        for(int i=0;i<faceInfo[0];i++) {
+            FaceInfo item = new FaceInfo();
+            item.left = faceInfo[1+14*i];
+            item.top = faceInfo[2+14*i];
+            item.right = faceInfo[3+14*i];
+            item.bottom = faceInfo[4+14*i];
+            Point[] points = new Point[5];
+            for(int j=0; j<5; j++){
+                Point point = new Point(faceInfo[5+14*i+j],faceInfo[10+14*i+j]);
+                points[j] = point;
+            }
+            item.points = points;
+            faceInfos[i] = item;
+        }
+        return faceInfos;
     }
 
     /**

@@ -1,0 +1,85 @@
+package com.example.l.mobilefacenet;
+
+import android.content.Context;
+import android.graphics.ImageFormat;
+import android.hardware.Camera;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+
+import java.io.IOException;
+
+/**
+ * 参考 https://www.jianshu.com/p/7dd2191b4537
+ */
+public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callback {
+
+    private final static String TAG = LiveCameraView.class.getSimpleName();
+    private Camera mCamera;
+    private SurfaceHolder mSurfaceHolder;
+
+    public LiveCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        mSurfaceHolder = this.getHolder();
+        mSurfaceHolder.addCallback(this);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        Log.d(TAG, "Start preview display[SURFACE-CREATED]");
+        startPreviewDisplay(holder);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        if (mSurfaceHolder.getSurface() == null){
+            return;
+        }
+        CameraHelper.followScreenOrientation(getContext(), mCamera);
+        Log.d(TAG, "Restart preview display[SURFACE-CHANGED]");
+        stopPreviewDisplay();
+        startPreviewDisplay(mSurfaceHolder);
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(TAG, "Stop preview display[SURFACE-DESTROYED]");
+        stopPreviewDisplay();
+    }
+
+    public void setCamera(Camera camera) {
+        mCamera = camera;
+        final Camera.Parameters params = mCamera.getParameters();
+        params.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO); // 自动模式，当光线较暗时自动打开闪光灯；
+        params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO); // 自动对焦模式，摄影小白专用模式；
+        params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO); // 自动选择场景；
+        params.setPreviewSize(960,720);
+        params.setPreviewFormat(ImageFormat.NV21);
+    }
+
+    private void startPreviewDisplay(SurfaceHolder holder){
+        checkCamera();
+        try {
+            mCamera.setPreviewDisplay(holder);
+            mCamera.startPreview();
+        } catch (IOException e) {
+            Log.e(TAG, "Error while START preview for camera", e);
+        }
+    }
+
+    private void stopPreviewDisplay(){
+        checkCamera();
+        try {
+            mCamera.stopPreview();
+        } catch (Exception e){
+            Log.e(TAG, "Error while STOP preview for camera", e);
+        }
+    }
+
+    private void checkCamera(){
+        if(mCamera == null) {
+            throw new IllegalStateException("Camera must be set when start/stop preview, call <setCamera(Camera)> to set");
+        }
+    }
+}

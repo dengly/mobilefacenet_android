@@ -1,9 +1,13 @@
-package com.example.l.mobilefacenet;
+package com.example.l.mobilefacenet.util;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.os.Build;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.List;
 
 public class AndroidUtil {
     private static final int DEVICEINFO_UNKNOWN =1;

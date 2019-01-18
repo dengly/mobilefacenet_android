@@ -105,7 +105,7 @@ jintArray faceDetect(JNIEnv *env, struct FaceEngine * faceEngine, ncnn::Mat ncnn
         faceInfo[14 * i + 2] = finalBbox[i].y1;//top
         faceInfo[14 * i + 3] = finalBbox[i].x2;//right
         faceInfo[14 * i + 4] = finalBbox[i].y2;//bottom
-        for (int j = 0; j < 10; j++) { // 5个关键点
+        for (int j = 0; j < 10; j++) { // 五个关键点 x1,x2,x3,x4,x5,y1,y2,y3,y4,y5
             faceInfo[14 * i + 5 + j] = static_cast<int>(finalBbox[i].ppoint[j]);
         }
     }
@@ -153,7 +153,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
     }
 
     if (imageWidth < faceEngine->minFaceSize || imageHeight < faceEngine->minFaceSize) {
-        LOGD("导入数据的宽和高小于20，直接返回空");
+        LOGD("导入数据的宽和高小于%d，直接返回空", faceEngine->minFaceSize);
         return NULL;
     }
 
