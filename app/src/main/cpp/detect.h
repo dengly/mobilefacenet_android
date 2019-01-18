@@ -7,8 +7,7 @@
 
 namespace Face {
 
-	struct Bbox
-	{
+	struct Bbox {
 		float score;
 		int x1;
 		int y1;

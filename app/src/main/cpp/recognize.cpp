@@ -30,24 +30,27 @@ namespace Face {
 		ncnn::Mat out;
 		ex.extract("fc1", out);
         ncnn::Mat test;
-		for (int j = 0; j < 128; j++)
-		{
+		for (int j = 0; j < 128; j++) {
 			feature_out[j] = out[j];
 		}
 	}
 
+	/**
+	 * 获取人脸特征
+	 */
     void Recognize::start(ncnn::Mat& ncnn_img, std::vector<float>&feature128) {
         RecogNet(ncnn_img);
         feature128 = feature_out;
     }
 
-	double calculSimilar(std::vector<float>& v1, std::vector<float>& v2)
-	{
+    /**
+     * 人脸特征比对
+     */
+	double calculSimilar(std::vector<float>& v1, std::vector<float>& v2) {
 		if(v1.size() != v2.size()||!v1.size())
 			return 0;
 		double ret = 0.0, mod1 = 0.0, mod2 = 0.0;
-		for (std::vector<double>::size_type i = 0; i != v1.size(); ++i)
-		{
+		for (std::vector<double>::size_type i = 0; i != v1.size(); ++i) {
 			ret += v1[i] * v2[i];
 			mod1 += v1[i] * v1[i];
 			mod2 += v2[i] * v2[i];

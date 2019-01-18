@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         //model init
         File sdDir = Environment.getExternalStorageDirectory();//get directory
         String sdPath = sdDir.toString() + "/facem/";
-        mFace.FaceModelInit(sdPath);
+        mFace.faceModelInit(sdPath);
 
         //LEFT IMAGE
         imageView1 = (ImageView) findViewById(R.id.imageView1);
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 byte[] imageDate = getPixelsRGBA(yourSelectedImage1);
 
                 long timeDetectFace = System.currentTimeMillis();
-                int faceInfo[]=mFace.FaceDetect(imageDate,width,height,4);
+                int faceInfo[]=mFace.faceDetect(imageDate,width,height,4);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
                 if(faceInfo.length>1){
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 byte[] imageDate = getPixelsRGBA(yourSelectedImage2);
 
                 long timeDetectFace = System.currentTimeMillis();
-                int faceInfo[]=mFace.FaceDetect(imageDate,width,height,4);
+                int faceInfo[]=mFace.faceDetect(imageDate,width,height,4);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
                 if(faceInfo.length>1){
@@ -202,10 +202,17 @@ public class MainActivity extends AppCompatActivity {
                 byte[] faceDate1 = getPixelsRGBA(faceImage1);
                 byte[] faceDate2 = getPixelsRGBA(faceImage2);
                 long timeRecognizeFace = System.currentTimeMillis();
-                double similar=mFace.FaceRecognize(faceDate1,faceImage1.getWidth(),faceImage1.getHeight(),
+                double similar=mFace.faceRecognize(faceDate1,faceImage1.getWidth(),faceImage1.getHeight(),
                         faceDate2,faceImage2.getWidth(),faceImage2.getHeight());
                 timeRecognizeFace = System.currentTimeMillis() - timeRecognizeFace;
                 cmpResult.setText("cosin:"+similar+"\n"+"cmp time:"+timeRecognizeFace);
+
+                timeRecognizeFace = System.currentTimeMillis();
+                float[] faceFeature1 = mFace.faceFeature(faceDate1,faceImage1.getWidth(),faceImage1.getHeight());
+                float[] faceFeature2 = mFace.faceFeature(faceDate2,faceImage2.getWidth(),faceImage2.getHeight());
+                similar=mFace.faceRecognize(faceFeature1, faceFeature2);
+                timeRecognizeFace = System.currentTimeMillis() - timeRecognizeFace;
+                cmpResult.setText(cmpResult.getText()+"\n ----- \n cosin:"+similar+"\n"+"cmp time:"+timeRecognizeFace);
             }
         });
 
