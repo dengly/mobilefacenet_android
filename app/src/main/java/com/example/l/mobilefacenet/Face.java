@@ -28,7 +28,7 @@ public class Face {
      * @return
      */
     public boolean faceModelInit(String faceDetectionModelPath){
-        pFaceEngine = FaceModelInit(faceDetectionModelPath, 2, 80);
+        pFaceEngine = FaceModelInit(faceDetectionModelPath, 2, 112);
         isInit = pFaceEngine!=0;
         return isInit;
     }
