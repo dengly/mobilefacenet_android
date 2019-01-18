@@ -104,10 +104,10 @@ public class MainActivity extends AppCompatActivity {
                 byte[] imageDate = getPixelsRGBA(yourSelectedImage1);
 
                 long timeDetectFace = System.currentTimeMillis();
-                int faceInfo[]=mFace.faceDetect(imageDate,width,height,4);
+                int faceInfo[]=mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
-                if(faceInfo.length>1){
+                if(faceInfo !=null && faceInfo.length>1){
                     faceInfo1.setText("pic1 detect time:"+timeDetectFace);
                     int faceNum = faceInfo[0];
                     Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceNum );
@@ -159,10 +159,10 @@ public class MainActivity extends AppCompatActivity {
                 byte[] imageDate = getPixelsRGBA(yourSelectedImage2);
 
                 long timeDetectFace = System.currentTimeMillis();
-                int faceInfo[]=mFace.faceDetect(imageDate,width,height,4);
+                int faceInfo[]=mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
-                if(faceInfo.length>1){
+                if(faceInfo !=null && faceInfo.length>1){
                     faceInfo2.setText("pic2 detect time:"+timeDetectFace);
                     int faceNum = faceInfo[0];
                     Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceNum );
@@ -201,21 +201,24 @@ public class MainActivity extends AppCompatActivity {
                 }
                 byte[] faceDate1 = getPixelsRGBA(faceImage1);
                 byte[] faceDate2 = getPixelsRGBA(faceImage2);
-                long timeRecognizeFace = System.currentTimeMillis();
-                double similar=mFace.faceRecognize(faceDate1,faceImage1.getWidth(),faceImage1.getHeight(),
-                        faceDate2,faceImage2.getWidth(),faceImage2.getHeight());
-                timeRecognizeFace = System.currentTimeMillis() - timeRecognizeFace;
-                cmpResult.setText("cosin:"+similar+"\n"+"cmp time:"+timeRecognizeFace);
 
-                timeRecognizeFace = System.currentTimeMillis();
-                float[] faceFeature1 = mFace.faceFeature(faceDate1,faceImage1.getWidth(),faceImage1.getHeight());
-                float[] faceFeature2 = mFace.faceFeature(faceDate2,faceImage2.getWidth(),faceImage2.getHeight());
-                similar=mFace.faceRecognize(faceFeature1, faceFeature2);
+                long timeRecognizeFace = System.currentTimeMillis();
+                float[] faceFeature1 = mFace.faceFeature(faceDate1,faceImage1.getWidth(),faceImage1.getHeight(),Face.ColorType.R8G8B8A8);
+                float[] faceFeature2 = mFace.faceFeature(faceDate2,faceImage2.getWidth(),faceImage2.getHeight(),Face.ColorType.R8G8B8A8);
+                double similar = mFace.faceRecognize(faceFeature1, faceFeature2);
                 timeRecognizeFace = System.currentTimeMillis() - timeRecognizeFace;
-                cmpResult.setText(cmpResult.getText()+"\n ----- \n cosin:"+similar+"\n"+"cmp time:"+timeRecognizeFace);
+                cmpResult.setText("特征码比对，cosin:"+similar+"\n"+"cmp time:"+timeRecognizeFace);
             }
         });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mFace!=null){
+            mFace.faceModelUnInit();
+        }
     }
 
     @Override
