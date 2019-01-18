@@ -22,6 +22,8 @@ public class Face {
     private long pFaceEngine;
     private boolean isInit = false;
 
+    public static final int MIN_FACE_SIZE = 112;
+
     /**
      * 初始化模型
      * @param faceDetectionModelPath

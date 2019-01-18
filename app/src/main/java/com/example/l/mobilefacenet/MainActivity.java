@@ -76,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
         //model init
         File sdDir = Environment.getExternalStorageDirectory();//get directory
         String sdPath = sdDir.toString() + "/facem/";
-        mFace.faceModelInit(sdPath);
+//        mFace.faceModelInit(sdPath, AndroidUtil.getNumberOfCPUCores()*2, Face.MIN_FACE_SIZE);
+        mFace.faceModelInit(sdPath, 4, 80);
 
         //LEFT IMAGE
         imageView1 = (ImageView) findViewById(R.id.imageView1);
@@ -202,12 +203,18 @@ public class MainActivity extends AppCompatActivity {
                 byte[] faceDate1 = getPixelsRGBA(faceImage1);
                 byte[] faceDate2 = getPixelsRGBA(faceImage2);
 
-                long timeRecognizeFace = System.currentTimeMillis();
+                long t0 = System.currentTimeMillis();
                 float[] faceFeature1 = mFace.faceFeature(faceDate1,faceImage1.getWidth(),faceImage1.getHeight(),Face.ColorType.R8G8B8A8);
+                long t1 = System.currentTimeMillis();
                 float[] faceFeature2 = mFace.faceFeature(faceDate2,faceImage2.getWidth(),faceImage2.getHeight(),Face.ColorType.R8G8B8A8);
+                long t2 = System.currentTimeMillis();
                 double similar = mFace.faceRecognize(faceFeature1, faceFeature2);
-                timeRecognizeFace = System.currentTimeMillis() - timeRecognizeFace;
-                cmpResult.setText("特征码比对，cosin:"+similar+"\n"+"cmp time:"+timeRecognizeFace);
+                long t3 = System.currentTimeMillis();
+                long timeRecognizeFace = t3 - t0;
+                cmpResult.setText("特征码比对，cosin:"+similar+"\n"+"总 time:"+timeRecognizeFace
+                        +"\n提取特征码1，time:"+(t1-t0)
+                        +"\n提取特征码2，time:"+(t2-t1)
+                        +"\n比对，time:"+(t3-t2));
             }
         });
 
