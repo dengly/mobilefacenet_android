@@ -62,7 +62,7 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
 //        mFace.faceModelInit(sdPath, AndroidUtil.getNumberOfCPUCores()*2, Face.MIN_FACE_SIZE);
 //        int minFaceSize = CommonUtil.max(width, height) / Face.MIN_FACE_SIZE_SIDE_SCALE;
         int minFaceSize = CommonUtil.sqrt(CommonUtil.area(width, height) / Face.MIN_FACE_SIZE_SCALE);
-        int threadNum = 4;
+        int threadNum = 2;
         mFace.faceModelInit(sdPath, threadNum, minFaceSize);
         Log.d(TAG, "face threadNum:"+threadNum+" minFaceSize:" + minFaceSize);
     }
@@ -139,7 +139,7 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
 
                     Log.i(TAG, "detect face time:"+timeDetectFace+"ms");
                     if(faceInfos !=null && faceInfos.length>0){
-                        Log.i(TAG, "pic width："+width+" height："+height+" face num：" + faceInfos.length );
+//                        Log.i(TAG, "pic width："+width+" height："+height+" face num：" + faceInfos.length );
                         Bitmap drawBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
                         for(int i=0;i<faceInfos.length; i++) {
                             Canvas canvas = new Canvas(drawBitmap);

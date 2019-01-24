@@ -59,7 +59,7 @@ public class Face {
     public static final int MIN_FACE_SIZE = 112;
     public static final int MIN_FACE_SIZE_SCALE = 24;
     public static final int MIN_FACE_SIZE_SIDE_SCALE = 6;
-    public static final double THRESHOLD = 0.65;
+    public static final double THRESHOLD = 0.6;
 
     /**
      * 初始化模型
@@ -73,7 +73,7 @@ public class Face {
     /**
      * 初始化模型
      * @param faceDetectionModelPath
-     * @param threadNum 线程数
+     * @param threadNum 线程数 注意设置大了不一定快，建议根据时间设备情况调整
      * @param minFaceSize 最小人脸像素
      * @return
      */
