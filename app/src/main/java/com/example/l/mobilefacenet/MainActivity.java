@@ -17,9 +17,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.l.mobilefacenet.model.Persion;
 import com.example.l.mobilefacenet.util.FileUtil;
 import com.example.l.mobilefacenet.util.ImageUtil;
 
@@ -33,6 +36,7 @@ import java.nio.ByteBuffer;
 import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
+    private final static String TAG = MainActivity.class.getSimpleName();
     private static final int SELECT_IMAGE1 = 1,SELECT_IMAGE2 = 2;
     private ImageView imageView1,imageView2;
     private Bitmap yourSelectedImage1 = null,yourSelectedImage2 = null;
@@ -218,6 +222,67 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button cut = (Button) findViewById(R.id.cut);
+        cut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                if (yourSelectedImage1 == null)
+                    return;
+                faceImage1=null;
+                //detect
+                int width = yourSelectedImage1.getWidth();
+                int height = yourSelectedImage1.getHeight();
+                byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
+
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+
+                if(faceInfos !=null && faceInfos.length>0){
+                    Log.d(TAG, "image width:"+width+" height:" + height
+                            +" face[left:"+faceInfos[0].getLeft()+",top:"+faceInfos[0].getTop()+",right:"+faceInfos[0].getRight()+",bottom:"+faceInfos[0].getBottom()+"]");
+
+                    byte[] faceBytes = mFace.getFaceImage(imageDate,width,height,Face.ColorType.R8G8B8A8,faceInfos[0]);
+
+                    Bitmap bmp = Bitmap.createBitmap(faceInfos[0].getWidth(), faceInfos[0].getHeight(), Bitmap.Config.ARGB_8888);
+                    ByteBuffer buffer = ByteBuffer.wrap(faceBytes);
+                    bmp.copyPixelsFromBuffer(buffer);
+
+                    imageView1.setImageBitmap(bmp);
+                }else{
+                    faceInfo1.setText("no face");
+                }
+            }
+        });
+
+        // camera
+        Button camera = (Button) findViewById(R.id.camera);
+        camera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                EditText editText = (EditText) findViewById(R.id.editText);
+                if(editText.getText()==null || editText.getText().length() == 0){
+                    Toast.makeText(MainActivity.this,"请填写姓名",Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (yourSelectedImage1 == null){
+                    Toast.makeText(MainActivity.this,"请选择图片1并检测",Toast.LENGTH_LONG).show();
+                    return;
+                }
+                faceImage1=null;
+                //detect
+                int width = yourSelectedImage1.getWidth();
+                int height = yourSelectedImage1.getHeight();
+                byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
+
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+
+                float[] faceFeature1 = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8, faceInfos[0]);
+
+                Persion persion = new Persion(editText.getText().toString(), faceFeature1);
+                Intent intent = new Intent(MainActivity.this, CameraActivity.class);
+                intent.putExtra("persion",persion);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

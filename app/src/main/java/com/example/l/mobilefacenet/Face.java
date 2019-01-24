@@ -57,6 +57,9 @@ public class Face {
     private boolean isInit = false;
 
     public static final int MIN_FACE_SIZE = 112;
+    public static final int MIN_FACE_SIZE_SCALE = 24;
+    public static final int MIN_FACE_SIZE_SIDE_SCALE = 6;
+    public static final double THRESHOLD = 0.65;
 
     /**
      * 初始化模型
@@ -64,9 +67,7 @@ public class Face {
      * @return
      */
     public boolean faceModelInit(String faceDetectionModelPath){
-        pFaceEngine = FaceModelInit(faceDetectionModelPath, 2, 112);
-        isInit = pFaceEngine!=0;
-        return isInit;
+        return faceModelInit(faceDetectionModelPath, 2, MIN_FACE_SIZE);
     }
 
     /**
@@ -140,6 +141,55 @@ public class Face {
             throw new RuntimeException("人脸识别引擎未初始化");
         }
         return FaceFeature(pFaceEngine, imageDate, imageWidth , imageHeight, colorType.code);
+    }
+
+    /**
+     * 获取人脸特征码
+     * @param imageDate 图片数据 目前只支持RGB、BGR和RGBA
+     * @param imageWidth 图片宽
+     * @param imageHeight 图片高
+     * @param colorType 图片颜色类型
+     * @param faceInfo 人脸信息，人脸位置等
+     * @return 人脸特征数据
+     */
+    public float[] faceFeature(byte[] imageDate, int imageWidth , int imageHeight, ColorType colorType, FaceInfo faceInfo){
+        if(!isInit){
+            throw new RuntimeException("人脸识别引擎未初始化");
+        }
+        if(faceInfo == null){
+            throw new RuntimeException("没有人脸位置信息");
+        }
+        byte[] faceImageDate = getFaceImage(imageDate, imageWidth , imageHeight, colorType, faceInfo);
+        return FaceFeature(pFaceEngine, faceImageDate, faceInfo.getWidth() , faceInfo.getHeight(), colorType.code);
+    }
+
+    public byte[] getFaceImage(byte[] imageDate, int imageWidth , int imageHeight, ColorType colorType, FaceInfo faceInfo){
+        if(faceInfo == null){
+            throw new RuntimeException("没有人脸位置信息");
+        }
+        int channel = colorType == ColorType.R8G8B8A8 ? 4 : 3;
+        byte[] faceImageDate = new byte[channel * faceInfo.getWidth() * faceInfo.getHeight()];
+        int wlen = 0;
+        int hlen = 0;
+        for(int i =0 ; i< faceImageDate.length;){
+            if(wlen >= faceInfo.getWidth()){
+                wlen = 0;
+                hlen++;
+            }
+            int index = wlen + faceInfo.left + (faceInfo.top + hlen) * imageWidth;
+            index = channel * index;
+            faceImageDate[i+0] = imageDate[index+0];
+            faceImageDate[i+1] = imageDate[index+1];
+            faceImageDate[i+2] = imageDate[index+2];
+            if(channel == 4) {
+                faceImageDate[i+3] = imageDate[index+3];
+                i = i+4 ;
+            }else{
+                i = i+3 ;
+            }
+            wlen++;
+        }
+        return faceImageDate;
     }
 
     /**

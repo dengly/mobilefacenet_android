@@ -123,6 +123,26 @@
                     android:layout_weight="1"
                     android:text="cmp" />
 
+                <Button
+                    android:id="@+id/cut"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="测试裁人脸" />
+
+                <EditText
+                    android:id="@+id/editText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="请填写姓名"/>
+
+                <Button
+                    android:id="@+id/camera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="camera" />
+
                 <TextView
                     android:id="@+id/textView1"
                     android:layout_width="match_parent"

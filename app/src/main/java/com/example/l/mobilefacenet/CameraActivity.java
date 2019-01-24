@@ -9,16 +9,22 @@ import android.hardware.Camera;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.ImageView;
 
+import com.example.l.mobilefacenet.model.Persion;
 import com.example.l.mobilefacenet.util.AndroidUtil;
 
 public class CameraActivity extends AppCompatActivity {
-    private Face mFace = new Face();
     private static final int REQUEST_CAMERA = 1;
     private static String[] PERMISSIONS_CAMERA = {
             "android.permission.CAMERA"};
 
     private LiveCameraView liveCameraView;
+    private ImageView imageView;
+//    private int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private int cameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+
+    private Persion persion;
 
     public static void verifyStoragePermissions(Activity activity) {
 
@@ -35,23 +41,39 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    public Persion getPersion(){
+        return persion;
+    }
+
+    public int getCameraId(){
+        return cameraId;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
 
+        imageView = findViewById(R.id.imageView);
         liveCameraView = findViewById(R.id.liveCameraView);
         verifyStoragePermissions(this);
 
+        persion = (Persion)getIntent().getParcelableExtra("persion");
+
         if(CameraHelper.hasCameraDevice(this)){
-            Camera camera = CameraHelper.openCamera(0);
+            Camera camera = CameraHelper.openCamera(cameraId);
             liveCameraView.setCamera(camera);
-//            camera.setPreviewCallback(new BitmapCallback() {
-//                @Override
-//                public void onPictureTaken(Bitmap bitmap) {
-//                    ;
-//                }
-//            });
+            liveCameraView.setActivity(this);
         }
+    }
+
+    public void updateImageView(Bitmap bitmap){
+        imageView.setImageBitmap(bitmap);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        liveCameraView.stop();
     }
 }

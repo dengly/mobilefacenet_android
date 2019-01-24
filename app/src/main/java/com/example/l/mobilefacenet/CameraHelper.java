@@ -21,13 +21,17 @@ public class CameraHelper {
         }
     }
 
-    public static void followScreenOrientation(Context context, Camera camera){
+    public static int followScreenOrientation(Context context, Camera camera){
         final int orientation = context.getResources().getConfiguration().orientation;
+        int degrees = 0;
         if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            camera.setDisplayOrientation(180);
+            degrees = 180;
+            camera.setDisplayOrientation(degrees);
         }else if(orientation == Configuration.ORIENTATION_PORTRAIT) {
-            camera.setDisplayOrientation(90);
+            degrees = 90;
+            camera.setDisplayOrientation(degrees);
         }
+        return degrees;
     }
 
     /**
