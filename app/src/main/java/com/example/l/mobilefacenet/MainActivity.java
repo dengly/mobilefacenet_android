@@ -275,7 +275,12 @@ public class MainActivity extends AppCompatActivity {
 
                 Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
 
-                float[] faceFeature1 = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8, faceInfos[0]);
+//                float[] faceFeature1 = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8, faceInfos[0]);
+
+                // 以下方式比上面的要快
+                Bitmap faceImage = Bitmap.createBitmap(yourSelectedImage1, faceInfos[0].getLeft(), faceInfos[0].getTop(), faceInfos[0].getWidth(), faceInfos[0].getHeight());
+                byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
+                float[] faceFeature1 = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
 
                 Persion persion = new Persion(editText.getText().toString(), faceFeature1);
                 Intent intent = new Intent(MainActivity.this, CameraActivity.class);

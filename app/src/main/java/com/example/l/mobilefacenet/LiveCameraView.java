@@ -152,17 +152,29 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
 //                                paint.setColor(Color.RED);
 //                                canvas.drawPoint(p.x,p.y,paint);
 //                            }
+
+                            // 这个方式比较慢
+//                            timeDetectFace = System.currentTimeMillis();
+//                            float[] feature = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8,faceInfos[i]);
+//                            double score = mFace.faceRecognize(feature, cameraActivity.getPersion().getFaceFeature());
+//                            timeDetectFace = System.currentTimeMillis() - timeDetectFace;
+//                            Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score"+score);
+
+                            // 以下方式比上面的要快
                             timeDetectFace = System.currentTimeMillis();
-                            float[] feature = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8,faceInfos[i]);
+                            Bitmap faceImage = Bitmap.createBitmap(bitmap, faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getWidth(), faceInfos[i].getHeight());
+                            byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
+                            float[] feature = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
                             double score = mFace.faceRecognize(feature, cameraActivity.getPersion().getFaceFeature());
                             timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-                            Log.i(TAG, "recognize face time:"+timeDetectFace+"ms");
+                            Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score"+score);
+
                             if(score > Face.THRESHOLD){
                                 paint.setColor(Color.GREEN);
                                 paint.setTextSize(textSize);
                                 paint.setStrokeWidth(3);
                                 paint.setTextAlign(Paint.Align.LEFT);
-                                canvas.drawText(cameraActivity.getPersion().getName(),faceInfos[i].getLeft(),faceInfos[i].getTop()-textSize,paint);
+                                canvas.drawText(cameraActivity.getPersion().getName(),faceInfos[i].getLeft(),faceInfos[i].getTop(),paint);
                             }
                         }
                         cameraActivity.updateImageView(drawBitmap);
