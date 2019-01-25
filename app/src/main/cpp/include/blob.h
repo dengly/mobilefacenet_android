@@ -32,9 +32,9 @@ public:
     // blob name
     std::string name;
 #endif // NCNN_STRING
-    // layer index which produce this blob as output - 将此blob作为输出生成的图层索引
+    // layer index which produce this blob as output
     int producer;
-    // layer index which need this blob as input - 需要此blob作为输入的图层索引
+    // layer index which need this blob as input
     std::vector<int> consumers;
 };
 

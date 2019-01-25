@@ -34,49 +34,69 @@ public:
     ~Net();
 
 #if NCNN_STRING
-    // register custom layer by layer type name - 通过类型名称注册自定义图层
-    // return 0 if success - 如果成功则返回0
+    // register custom layer by layer type name
+    // return 0 if success
     int register_custom_layer(const char* type, layer_creator_func creator);
 #endif // NCNN_STRING
-    // register custom layer by layer type - 通过类型注册自定义图层
-    // return 0 if success - 如果成功则返回0
+    // register custom layer by layer type
+    // return 0 if success
     int register_custom_layer(int index, layer_creator_func creator);
 
 #if NCNN_STDIO
 #if NCNN_STRING
-    // load network structure from plain param file - 从计划param文件加载网络结构
-    // return 0 if success - 如果成功则返回0
+    // load network structure from plain param file
+    // return 0 if success
     int load_param(FILE* fp);
     int load_param(const char* protopath);
+    int load_param_mem(const char* mem);
 #endif // NCNN_STRING
-    // load network structure from binary param file - 从二进制param文件加载网络结构
-    // return 0 if success - 如果成功则返回0
+    // load network structure from binary param file
+    // return 0 if success
     int load_param_bin(FILE* fp);
     int load_param_bin(const char* protopath);
 
-    // load network weight data from model file - 从模型文件加载网络权重数据
-    // return 0 if success - 如果成功则返回0
+    // load network weight data from model file
+    // return 0 if success
     int load_model(FILE* fp);
     int load_model(const char* modelpath);
 #endif // NCNN_STDIO
 
-    // load network structure from external memory - 从外部存储器加载网络结构
-    // memory pointer must be 32-bit aligned - 内存指针必须是32位对齐的
-    // return bytes consumed - 返回消耗的字节数
+    // load network structure from external memory
+    // memory pointer must be 32-bit aligned
+    // return bytes consumed
     int load_param(const unsigned char* mem);
 
-    // reference network weight data from external memory - 从外部存储器引用网络权重数据
-    // weight data is not copied but referenced - 重量数据不会被复制但会被引用
-    // so external memory should be retained when used - 使用时应保留外部存储器
-    // memory pointer must be 32-bit aligned - 内存指针必须是32位对齐的
-    // return bytes consumed - 返回消耗的字节数
+    // reference network weight data from external memory
+    // weight data is not copied but referenced
+    // so external memory should be retained when used
+    // memory pointer must be 32-bit aligned
+    // return bytes consumed
     int load_model(const unsigned char* mem);
 
-    // unload network structure and weight data - 卸载网络结构和重量数据
+    // unload network structure and weight data
     void clear();
 
-    // construct an Extractor from network - 从网络构造一个Extractor
+    // construct an Extractor from network
     Extractor create_extractor() const;
+
+public:
+    // enable winograd convolution optimization
+    // improve convolution 3x3 stride1 performace, may consume more memory
+    // changes should be applied before loading network structure and weight
+    // enabled by default
+    int use_winograd_convolution;
+
+    // enable sgemm convolution optimization
+    // improve convolution 1x1 stride1 performace, may consume more memory
+    // changes should be applied before loading network structure and weight
+    // enabled by default
+    int use_sgemm_convolution;
+
+    // enable quantized int8 inference
+    // use low-precision int8 path for quantized model
+    // changes should be applied before loading network structure and weight
+    // enabled by default
+    int use_int8_inference;
 
 protected:
     friend class Extractor;
@@ -87,7 +107,7 @@ protected:
     Layer* create_custom_layer(const char* type);
 #endif // NCNN_STRING
     Layer* create_custom_layer(int index);
-    int forward_layer(int layer_index, std::vector<Mat>& blob_mats, bool lightmode) const;
+    int forward_layer(int layer_index, std::vector<Mat>& blob_mats, Option& opt) const;
 
 protected:
     std::vector<Blob> blobs;
@@ -99,32 +119,38 @@ protected:
 class Extractor
 {
 public:
-    // enable light mode - 启用灯光模式
-    // intermediate blob will be recycled when enabled - 启用后，将回收中间blob
-    // enabled by default - 默认启用
+    // enable light mode
+    // intermediate blob will be recycled when enabled
+    // enabled by default
     void set_light_mode(bool enable);
 
-    // set thread count for this extractor - 设置此提取器的线程数
-    // this will overwrite the global setting - 这将覆盖全局设置
-    // default count is system depended - 默认计数是系统依赖的
+    // set thread count for this extractor
+    // this will overwrite the global setting
+    // default count is system depended
     void set_num_threads(int num_threads);
 
+    // set blob memory allocator
+    void set_blob_allocator(Allocator* allocator);
+
+    // set workspace memory allocator
+    void set_workspace_allocator(Allocator* allocator);
+
 #if NCNN_STRING
-    // set input by blob name - 通过blob名称设置输入
-    // return 0 if success - 如果成功则返回0
+    // set input by blob name
+    // return 0 if success
     int input(const char* blob_name, const Mat& in);
 
-    // get result by blob name - 通过blob名称获得结果
-    // return 0 if success - 如果成功则返回0
+    // get result by blob name
+    // return 0 if success
     int extract(const char* blob_name, Mat& feat);
 #endif // NCNN_STRING
 
-    // set input by blob index - 通过blob索引设置输入
-    // return 0 if success - 如果成功则返回0
+    // set input by blob index
+    // return 0 if success
     int input(int blob_index, const Mat& in);
 
-    // get result by blob index - 通过blob索引获得结果
-    // return 0 if success - 如果成功则返回0
+    // get result by blob index
+    // return 0 if success
     int extract(int blob_index, Mat& feat);
 
 protected:
@@ -134,8 +160,7 @@ protected:
 private:
     const Net* net;
     std::vector<Mat> blob_mats;
-    bool lightmode;
-    int num_threads;
+    Option opt;
 };
 
 } // namespace ncnn

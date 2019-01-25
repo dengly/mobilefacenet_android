@@ -90,7 +90,7 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         }
         degrees = CameraHelper.followScreenOrientation(getContext(), mCamera);
         Log.d(TAG, "Restart preview display[SURFACE-CHANGED] width:"+width+" height:"+height);
-        stopPreviewDisplay();
+//        stopPreviewDisplay();
         startPreviewDisplay(mSurfaceHolder);
     }
 
