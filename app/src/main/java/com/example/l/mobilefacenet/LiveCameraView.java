@@ -2,6 +2,7 @@ package com.example.l.mobilefacenet;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
@@ -132,9 +133,14 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
                     }
 
                     byte[] imageDate = ImageUtil.getPixelsRGBA(bitmap);
+                    Face.ColorType colorType = Face.ColorType.R8G8B8A8;
+
+//                    byte[] imageDate = mFace.yuv420sp2Rgb(data, width, height);
+//                    bitmap = ImageUtil.rgb2Bitmap(imageDate, width, height);
+//                    Face.ColorType colorType = Face.ColorType.R8G8B8;
 
                     long timeDetectFace = System.currentTimeMillis();
-                    Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+                    Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,colorType);
                     timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
                     Log.i(TAG, "detect face time:"+timeDetectFace+"ms");

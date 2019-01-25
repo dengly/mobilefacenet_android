@@ -62,6 +62,17 @@ public class Face {
     public static final double THRESHOLD = 0.6;
 
     /**
+     * nv21转rgb
+     * @param yuv420sp
+     * @param w
+     * @param h
+     * @return
+     */
+    public byte[] yuv420sp2Rgb(byte[] yuv420sp, int w, int h){
+        return Yuv420sp2Rgb(yuv420sp, w, h);
+    }
+
+    /**
      * 初始化模型
      * @param faceDetectionModelPath
      * @return
@@ -244,6 +255,15 @@ public class Face {
      * @return 返回相识度，[0-1]，0表示100%不像，1表示完全一样
      */
     private native double FaceRecognize(float[] faceFeature1, float[] faceFeature2);
+
+    /**
+     * nv21转rgb
+     * @param yuv420sp
+     * @param w
+     * @param h
+     * @return
+     */
+    private native byte[] Yuv420sp2Rgb(byte[] yuv420sp, int w, int h);
 
     static {
         System.loadLibrary("Face");

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "net.h"
+#include "mat.h"
 #include "face.h"
 
 using namespace Face;
@@ -236,6 +237,24 @@ Java_com_example_l_mobilefacenet_Face_FaceRecognize(JNIEnv *env, jobject instanc
     // 人脸特征比对
     double similar = calculSimilar(feature1, feature2);
     return similar;
+}
+
+/**
+ * nv21转rgb
+ */
+JNIEXPORT jbyteArray JNICALL
+Java_com_example_l_mobilefacenet_Face_Yuv420sp2Rgb(JNIEnv *env, jobject instance,
+                                                   jbyteArray _yuv420sp, jint _w, jint _h) {
+    jbyte * p_yuv420sp = env->GetByteArrayElements(_yuv420sp, NULL);
+    unsigned char * pYuv420sp = (unsigned char*)p_yuv420sp;
+    int rgb_len = 3 * _w *_h;
+    unsigned char * pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+    ncnn::yuv420sp2rgb(pYuv420sp, _w, _h, pRgb);
+
+    jbyteArray rgb = env->NewByteArray(rgb_len);
+    env->SetByteArrayRegion(rgb, 0, rgb_len, (jbyte *)pRgb);
+    free(pRgb);
+    return rgb;
 }
 
 }

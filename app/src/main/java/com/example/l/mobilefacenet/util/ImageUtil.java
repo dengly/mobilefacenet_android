@@ -45,6 +45,16 @@ public class ImageUtil {
         }
     }
 
+    public static Bitmap rgb2Bitmap(byte[] rgbBytes, int width, int height){
+        if(rgbBytes==null || rgbBytes.length==0)return null;
+        int[] rgb = new int[rgbBytes.length / 3];
+        for(int i=0; i<rgb.length; i++){
+            int index = i * 3;
+            rgb[i] = 0xFF000000 | rgbBytes[index+0] << 16 | rgbBytes[index+1] << 8  | rgbBytes[index+2] ;
+        }
+        return Bitmap.createBitmap(rgb, width, height, Bitmap.Config.ARGB_8888);
+    }
+
     public static class NV21ToBitmap {
         private RenderScript rs;
         private ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic;
