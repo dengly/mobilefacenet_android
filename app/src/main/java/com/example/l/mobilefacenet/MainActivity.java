@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -253,41 +254,54 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // camera
-        Button camera = (Button) findViewById(R.id.camera);
-        camera.setOnClickListener(new View.OnClickListener() {
+        // 后置camera
+        Button camera0 = (Button) findViewById(R.id.camera0);
+        camera0.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                EditText editText = (EditText) findViewById(R.id.editText);
-                if(editText.getText()==null || editText.getText().length() == 0){
-                    Toast.makeText(MainActivity.this,"请填写姓名",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (yourSelectedImage1 == null){
-                    Toast.makeText(MainActivity.this,"请选择图片1并检测",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                faceImage1=null;
-                //detect
-                int width = yourSelectedImage1.getWidth();
-                int height = yourSelectedImage1.getHeight();
-                byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
+                cameraVideo(Camera.CameraInfo.CAMERA_FACING_BACK);
+            }
+        });
+        // 前置camera
+        Button camera1 = (Button) findViewById(R.id.camera1);
+        camera1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                cameraVideo(Camera.CameraInfo.CAMERA_FACING_FRONT);
+            }
+        });
+    }
 
-                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+    private void cameraVideo(int cameraId){
+        EditText editText = (EditText) findViewById(R.id.editText);
+        if(editText.getText()==null || editText.getText().length() == 0){
+            Toast.makeText(MainActivity.this,"请填写姓名",Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (yourSelectedImage1 == null){
+            Toast.makeText(MainActivity.this,"请选择图片1并检测",Toast.LENGTH_LONG).show();
+            return;
+        }
+        faceImage1=null;
+        //detect
+        int width = yourSelectedImage1.getWidth();
+        int height = yourSelectedImage1.getHeight();
+        byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
+
+        Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
 
 //                float[] faceFeature1 = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8, faceInfos[0]);
 
-                // 以下方式比上面的要快
-                Bitmap faceImage = Bitmap.createBitmap(yourSelectedImage1, faceInfos[0].getLeft(), faceInfos[0].getTop(), faceInfos[0].getWidth(), faceInfos[0].getHeight());
-                byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
-                float[] faceFeature1 = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
+        // 以下方式比上面的要快
+        Bitmap faceImage = Bitmap.createBitmap(yourSelectedImage1, faceInfos[0].getLeft(), faceInfos[0].getTop(), faceInfos[0].getWidth(), faceInfos[0].getHeight());
+        byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
+        float[] faceFeature1 = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
 
-                Persion persion = new Persion(editText.getText().toString(), faceFeature1);
-                Intent intent = new Intent(MainActivity.this, CameraActivity.class);
-                intent.putExtra("persion",persion);
-                startActivity(intent);
-            }
-        });
+        Persion persion = new Persion(editText.getText().toString(), faceFeature1);
+        Intent intent = new Intent(MainActivity.this, CameraActivity.class);
+        intent.putExtra("persion",persion);
+        intent.putExtra("cameraId",cameraId);
+        startActivity(intent);
     }
 
     @Override

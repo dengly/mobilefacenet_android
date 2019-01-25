@@ -21,8 +21,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private LiveCameraView liveCameraView;
     private ImageView imageView;
-//    private int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-    private int cameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int cameraId;
 
     private Persion persion;
 
@@ -59,6 +58,7 @@ public class CameraActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
 
         persion = (Persion)getIntent().getParcelableExtra("persion");
+        cameraId = getIntent().getIntExtra("cameraId", Camera.CameraInfo.CAMERA_FACING_BACK);
 
         if(CameraHelper.hasCameraDevice(this)){
             Camera camera = CameraHelper.openCamera(cameraId);

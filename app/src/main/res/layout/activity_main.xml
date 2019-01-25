@@ -134,14 +134,22 @@
                     android:id="@+id/editText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="请填写姓名"/>
+                    android:hint="请填写姓名"
+                    android:text="dly"/>
 
                 <Button
-                    android:id="@+id/camera"
+                    android:id="@+id/camera0"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="camera" />
+                    android:text="后置camera" />
+
+                <Button
+                    android:id="@+id/camera1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="前置camera" />
 
                 <TextView
                     android:id="@+id/textView1"

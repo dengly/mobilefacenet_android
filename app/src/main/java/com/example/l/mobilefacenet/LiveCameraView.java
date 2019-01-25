@@ -2,13 +2,11 @@ package com.example.l.mobilefacenet;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.AttributeSet;
@@ -197,11 +195,6 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         } catch (IOException e) {
             Log.e(TAG, "Error while START preview for camera", e);
         }
-    }
-
-    private byte[] bitmap2Bytes(Bitmap bm) {
-        bm.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        return baos.toByteArray();
     }
 
     private void stopPreviewDisplay(){
