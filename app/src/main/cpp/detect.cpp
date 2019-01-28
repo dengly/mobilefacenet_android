@@ -173,8 +173,11 @@ namespace Face {
 			it->area = (it->x2 - it->x1)*(it->y2 - it->y1);
 		}
 	}
-	void Detect::PNet() {
-		firstBbox_.clear();
+
+	std::vector<Bbox> Detect::PNet(ncnn::Mat img) {
+		std::vector<Bbox> firstBbox_;
+		int img_w = img.w;
+		int img_h = img.h;
 		float minl = img_w < img_h ? img_w : img_h;
 		float m = (float)MIN_DET_SIZE / minsize;
 		minl *= m;
@@ -203,9 +206,12 @@ namespace Face {
 			firstBbox_.insert(firstBbox_.end(), boundingBox_.begin(), boundingBox_.end());
 			boundingBox_.clear();
 		}
+		return firstBbox_;
 	}
-	void Detect::RNet() {
-		secondBbox_.clear();
+	std::vector<Bbox> Detect::RNet(ncnn::Mat img, std::vector<Bbox> firstBbox_) {
+		std::vector<Bbox> secondBbox_;
+		int img_w = img.w;
+		int img_h = img.h;
 		int count = 0;
 		for (std::vector<Bbox>::iterator it = firstBbox_.begin(); it != firstBbox_.end(); it++) {
 			ncnn::Mat tempIm;
@@ -228,9 +234,12 @@ namespace Face {
 				secondBbox_.push_back(*it);
 			}
 		}
+		return secondBbox_;
 	}
-	void Detect::ONet() {
-		thirdBbox_.clear();
+	std::vector<Bbox> Detect::ONet(ncnn::Mat img, std::vector<Bbox> secondBbox_) {
+		std::vector<Bbox> thirdBbox_;
+		int img_w = img.w;
+		int img_h = img.h;
 		for (std::vector<Bbox>::iterator it = secondBbox_.begin(); it != secondBbox_.end(); it++) {
 			ncnn::Mat tempIm;
 			copy_cut_border(img, tempIm, (*it).y1, img_h - (*it).y2, (*it).x1, img_w - (*it).x2);
@@ -258,15 +267,16 @@ namespace Face {
 				thirdBbox_.push_back(*it);
 			}
 		}
+		return thirdBbox_;
 	}
 
 	void Detect::start(const ncnn::Mat& ncnn_img, std::vector<Bbox>& finalBbox_) {
-		img = ncnn_img;
-		img_w = img.w;
-		img_h = img.h;
+		ncnn::Mat img = ncnn_img;
+		int img_w = img.w;
+		int img_h = img.h;
 		img.substract_mean_normalize(mean_vals, norm_vals);
 
-		PNet();
+		std::vector<Bbox> firstBbox_ = PNet(img);
 		//the first stage's nms
 		if (firstBbox_.size() < 1) return;
 		nms(firstBbox_, nms_threshold[0]);
@@ -275,14 +285,14 @@ namespace Face {
 
 
 		//second stage
-		RNet();
+		std::vector<Bbox> secondBbox_ = RNet(img, firstBbox_);
 		//printf("secondBbox_.size()=%zd\n", secondBbox_.size());
 		if (secondBbox_.size() < 1) return;
 		nms(secondBbox_, nms_threshold[1]);
 		refine(secondBbox_, img_h, img_w, true);
 
 		//third stage
-		ONet();
+		std::vector<Bbox> thirdBbox_ = ONet(img, secondBbox_);
 		//printf("thirdBbox_.size()=%zd\n", thirdBbox_.size());
 		if (thirdBbox_.size() < 1) return;
 		refine(thirdBbox_, img_h, img_w, true);

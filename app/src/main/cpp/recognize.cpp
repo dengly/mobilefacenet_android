@@ -21,7 +21,8 @@ namespace Face {
 		threadnum = threadNum;
 	}
 
-	void Recognize::RecogNet(ncnn::Mat& img_) {
+	std::vector<float> Recognize::RecogNet(ncnn::Mat& img_) {
+		std::vector<float> feature_out;
         feature_out.resize(128);
 		ncnn::Extractor ex = Recognet.create_extractor();
 		ex.set_num_threads(threadnum);
@@ -33,13 +34,14 @@ namespace Face {
 		for (int j = 0; j < 128; j++) {
 			feature_out[j] = out[j];
 		}
+		return feature_out;
 	}
 
 	/**
 	 * 获取人脸特征
 	 */
     void Recognize::start(ncnn::Mat& ncnn_img, std::vector<float>&feature128) {
-        RecogNet(ncnn_img);
+		std::vector<float> feature_out = RecogNet(ncnn_img);
         feature128 = feature_out;
     }
 
