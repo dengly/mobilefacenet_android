@@ -254,6 +254,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 虹软
+        Button faceType0 = (Button) findViewById(R.id.faceType0);
+        faceType0.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+            }
+        });
+        // ncnn
+        Button faceType1 = (Button) findViewById(R.id.faceType1);
+        faceType1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+            }
+        });
+
         // 后置camera
         Button camera0 = (Button) findViewById(R.id.camera0);
         camera0.setOnClickListener(new View.OnClickListener() {

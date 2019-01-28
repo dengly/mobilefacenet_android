@@ -105,17 +105,17 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
                 <Button
                     android:id="@+id/facecmp"
                     android:layout_width="wrap_content"
@@ -129,13 +129,41 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="测试裁人脸" />
+            </LinearLayout>
 
-                <EditText
-                    android:id="@+id/editText"
-                    android:layout_width="match_parent"
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="请填写姓名"
+                android:text="dly"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/faceType0"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="请填写姓名"
-                    android:text="dly"/>
+                    android:layout_weight="1"
+                    android:text="虹软" />
+
+                <Button
+                    android:id="@+id/faceType1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ncnn" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/camera0"
@@ -150,14 +178,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="前置camera" />
-
-                <TextView
-                    android:id="@+id/textView1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
         </LinearLayout>
 

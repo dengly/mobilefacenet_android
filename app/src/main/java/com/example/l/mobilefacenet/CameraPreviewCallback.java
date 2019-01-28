@@ -7,13 +7,19 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
+import android.os.Environment;
 import android.util.Log;
 
+import com.example.l.mobilefacenet.model.Persion;
+import com.example.l.mobilefacenet.util.CommonUtil;
 import com.example.l.mobilefacenet.util.ImageUtil;
 
+import java.io.File;
+import java.util.List;
+
 public class CameraPreviewCallback implements PreviewCallback {
-    private String TAG;
-    private Face mFace;
+    private final static String TAG = LiveCameraView.class.getSimpleName();
+    private Face mFace = new Face();
     private int degrees;;
     private Matrix matrix;
     private int width = 960;
@@ -21,6 +27,25 @@ public class CameraPreviewCallback implements PreviewCallback {
     private CameraActivity cameraActivity;
     private ImageUtil.NV21ToBitmap nv21ToBitmap ;
     private int textSize = 40;
+
+    private List<Persion> persions;
+
+    public CameraPreviewCallback(){
+        //model init
+        File sdDir = Environment.getExternalStorageDirectory();//get directory
+        String sdPath = sdDir.toString() + "/facem/";
+//        mFace.faceModelInit(sdPath, AndroidUtil.getNumberOfCPUCores()*2, Face.MIN_FACE_SIZE);
+//        int minFaceSize = CommonUtil.max(width, height) / Face.MIN_FACE_SIZE_SIDE_SCALE;
+        int minFaceSize = CommonUtil.sqrt(CommonUtil.area(width, height) / Face.MIN_FACE_SIZE_SCALE);
+        int threadNum = 2;
+        mFace.faceModelInit(sdPath, threadNum, minFaceSize);
+    }
+
+    public void stop(){
+        if(mFace!=null){
+            mFace.faceModelUnInit();
+        }
+    }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
@@ -75,16 +100,24 @@ public class CameraPreviewCallback implements PreviewCallback {
                 Bitmap faceImage = Bitmap.createBitmap(bitmap, faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getWidth(), faceInfos[i].getHeight());
                 byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
                 float[] feature = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
-                double score = mFace.faceRecognize(feature, cameraActivity.getPersion().getFaceFeature());
+                double maxScore=0;
+                int index=-1;
+                for(int j =0; j<persions.size(); j++){
+                    Persion persion = persions.get(j);
+                    double score = mFace.faceRecognize(feature, persion.getFaceFeature());
+                    if(score > maxScore){
+                        index = j;
+                    }
+                }
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-                Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score"+score);
+                Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score"+maxScore);
 
-                if(score > Face.THRESHOLD){
+                if(maxScore > Face.THRESHOLD){
                     paint.setColor(Color.GREEN);
                     paint.setTextSize(textSize);
                     paint.setStrokeWidth(3);
                     paint.setTextAlign(Paint.Align.LEFT);
-                    canvas.drawText(cameraActivity.getPersion().getName(),faceInfos[i].getLeft(),faceInfos[i].getTop(),paint);
+                    canvas.drawText(persions.get(index).getName(),faceInfos[i].getLeft(),faceInfos[i].getTop(),paint);
                 }
             }
             cameraActivity.updateImageView(drawBitmap);
@@ -96,20 +129,8 @@ public class CameraPreviewCallback implements PreviewCallback {
 //                    }
     }
 
-    public void setTAG(String TAG) {
-        this.TAG = TAG;
-    }
-
-    public void setmFace(Face mFace) {
-        this.mFace = mFace;
-    }
-
     public void setDegrees(int degrees) {
         this.degrees = degrees;
-    }
-
-    public void setMatrix(Matrix matrix) {
-        this.matrix = matrix;
     }
 
     public void setWidth(int width) {
@@ -130,5 +151,9 @@ public class CameraPreviewCallback implements PreviewCallback {
 
     public void setTextSize(int textSize) {
         this.textSize = textSize;
+    }
+
+    public void setPersions(List<Persion> persions) {
+        this.persions = persions;
     }
 }

@@ -1,9 +1,7 @@
 package com.example.l.mobilefacenet;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.support.v4.app.ActivityCompat;
@@ -12,7 +10,6 @@ import android.os.Bundle;
 import android.widget.ImageView;
 
 import com.example.l.mobilefacenet.model.Persion;
-import com.example.l.mobilefacenet.util.AndroidUtil;
 
 public class CameraActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA = 1;
@@ -67,8 +64,13 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    public void updateImageView(Bitmap bitmap){
-        imageView.setImageBitmap(bitmap);
+    public void updateImageView(final Bitmap bitmap){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                imageView.setImageBitmap(bitmap);
+            }
+        });
     }
 
     @Override

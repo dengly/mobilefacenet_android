@@ -3,17 +3,17 @@ package com.example.l.mobilefacenet;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
-import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.example.l.mobilefacenet.util.CommonUtil;
+import com.example.l.mobilefacenet.model.Persion;
 import com.example.l.mobilefacenet.util.ImageUtil;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 参考 https://www.jianshu.com/p/7dd2191b4537
@@ -29,8 +29,10 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
     private int width = 960;
     private int height = 720;
     private int degrees;
-    private Face mFace = new Face();
     private CameraActivity cameraActivity;
+
+//    CameraPreviewCallback cameraPreviewCallback = new CameraPreviewCallback();
+    CameraPreviewCallback2 cameraPreviewCallback = new CameraPreviewCallback2();
 
     public LiveCameraView(Context context) {
         this(context, null);
@@ -45,16 +47,6 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         mSurfaceHolder = this.getHolder();
         mSurfaceHolder.addCallback(this);
         nv21ToBitmap = new ImageUtil.NV21ToBitmap(context);
-
-        //model init
-        File sdDir = Environment.getExternalStorageDirectory();//get directory
-        String sdPath = sdDir.toString() + "/facem/";
-//        mFace.faceModelInit(sdPath, AndroidUtil.getNumberOfCPUCores()*2, Face.MIN_FACE_SIZE);
-//        int minFaceSize = CommonUtil.max(width, height) / Face.MIN_FACE_SIZE_SIDE_SCALE;
-        int minFaceSize = CommonUtil.sqrt(CommonUtil.area(width, height) / Face.MIN_FACE_SIZE_SCALE);
-        int threadNum = 2;
-        mFace.faceModelInit(sdPath, threadNum, minFaceSize);
-        Log.d(TAG, "face threadNum:"+threadNum+" minFaceSize:" + minFaceSize);
     }
 
     public void setActivity(CameraActivity cameraActivity) {
@@ -62,9 +54,7 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     public void stop(){
-        if(mFace!=null){
-            mFace.faceModelUnInit();
-        }
+        cameraPreviewCallback.stop();
     }
 
     @Override
@@ -106,16 +96,19 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         try {
             mCamera.setPreviewDisplay(holder);
 
-            CameraPreviewCallback cameraPreviewCallback = new CameraPreviewCallback();
             cameraPreviewCallback.setCameraActivity(cameraActivity);
             cameraPreviewCallback.setDegrees(degrees);
             cameraPreviewCallback.setHeight(height);
-            cameraPreviewCallback.setmFace(mFace);
             cameraPreviewCallback.setNv21ToBitmap(nv21ToBitmap);
             cameraPreviewCallback.setTextSize(textSize);
             cameraPreviewCallback.setWidth(width);
-            cameraPreviewCallback.setTAG(TAG);
-            mCamera.setPreviewCallback(cameraPreviewCallback);
+            List<Persion> list = new ArrayList<>();
+            list.add(cameraActivity.getPersion());
+            cameraPreviewCallback.setPersions(list);
+
+//            mCamera.setPreviewCallback(cameraPreviewCallback);
+            mCamera.addCallbackBuffer(new byte[((width * height) * ImageFormat.getBitsPerPixel(ImageFormat.NV21)) / 8]);
+            mCamera.setPreviewCallbackWithBuffer(cameraPreviewCallback);
 
             mCamera.startPreview();
         } catch (IOException e) {
