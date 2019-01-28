@@ -50,15 +50,13 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
     private Map<Long, FacePersion> map = new HashMap<>();
     private Map<Long, FacePersion> knownMap = new HashMap<>();
 
-    private Queue<VideoFrame> queueA = new LinkedList<>();
     private Queue<VideoFrame> queueB = new LinkedList<>();
     private Queue<VideoFrame> queueC = new LinkedList<>();
 
-    private ExecutorService threadPoolA = Executors.newFixedThreadPool(2);
     private ExecutorService threadPoolB = Executors.newFixedThreadPool(FACE_DETECT_NUM);
     private ExecutorService threadPoolC = Executors.newFixedThreadPool(FACE_RECOGNIZE_NUM);
 
-    private static final Face.ColorType colorType = Face.ColorType.R8G8B8A8;
+    private static final Face.ColorType colorType = Face.ColorType.NV21;
     private boolean stop = false;
     private AtomicLong track = new AtomicLong(0);
 
@@ -100,61 +98,6 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
             @Override
             public void run() {
                 initNum.incrementAndGet();
-//                while(!stop){
-//                    synchronized (queueA){
-//                        if(queueA.isEmpty()){
-//                            try {
-//                                queueA.wait(20);
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                    if(!queueA.isEmpty()){
-//                        VideoFrame tempVideoFrame = null;
-//                        try{
-//                            tempVideoFrame = queueA.poll();
-//                        }catch (Exception e){
-//                            tempVideoFrame = null;
-//                        }
-//                        final VideoFrame videoFrame = tempVideoFrame ;
-//                        if(videoFrame!=null && videoFrame.frame != null && videoFrame.frame.length>0){
-//                            threadPoolA.execute(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    // 转换视频帧数据 格式、旋转等
-//                                    long timeDetectFace = System.currentTimeMillis();
-//                                    Bitmap bitmap ;
-//                                    int _degrees = cameraActivity.getCameraId() == Camera.CameraInfo.CAMERA_FACING_BACK ? degrees : degrees + 90;
-//                                    if(_degrees!=0){
-//                                        if(matrix==null){
-//                                            matrix = new Matrix();
-//                                            matrix.setRotate(_degrees, width/2, height/2);
-//                                        }
-//                                        bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height, matrix);
-//                                    }else{
-//                                        bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height);
-//                                    }
-//                                    videoFrame.bitmap = bitmap;
-//                                    videoFrame.frame = null;
-//                                    timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-//                                    Log.i(TAG, "nv21ToBitmap time:"+timeDetectFace+"ms");
-//                                    // 添加到队列B中，并通知队列B相关线程
-//                                    synchronized (queueB) {
-//                                        queueB.offer(videoFrame);
-//                                        queueB.notifyAll();
-//                                    }
-//                                }
-//                            });
-//                        }
-//                    }
-//                }
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                initNum.incrementAndGet();
                 while(!stop){
                     synchronized (queueB){
                         if(queueB.size() == 0){
@@ -173,16 +116,14 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                             tempVideoFrame = null;
                         }
                         final VideoFrame videoFrame = tempVideoFrame ;
-                        if(videoFrame!=null && videoFrame.bitmap != null){
+                        if(videoFrame!=null && videoFrame.frame != null){
                             threadPoolB.execute(new Runnable() {
                                 @Override
                                 public void run() {
                                     // 人脸检测
                                     long timeDetectFace = System.currentTimeMillis();
                                     Face mFace = queueFaceDetect.poll();
-                                    videoFrame.frame = ImageUtil.getPixelsRGBA(videoFrame.bitmap);
                                     Face.FaceInfo[] faceInfos = mFace.faceDetect(videoFrame.frame, videoFrame.width, videoFrame.height, colorType);
-                                    videoFrame.frame = null;
                                     timeDetectFace = System.currentTimeMillis() - timeDetectFace;
                                     Log.i(TAG, "detect face time:"+timeDetectFace+"ms");
                                     if(faceInfos !=null && faceInfos.length>0){
@@ -286,7 +227,9 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                             tempVideoFrame = null;
                         }
                         final VideoFrame videoFrame = tempVideoFrame ;
-                        if(videoFrame!=null && videoFrame.bitmap != null){
+                        if(videoFrame!=null && videoFrame.frame != null){
+                            videoFrame.bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height);
+                            videoFrame.frame = null;
                             // 显示
                             if(videoFrame.trackMap!=null && !videoFrame.trackMap.isEmpty()){
                                 Canvas canvas = new Canvas(videoFrame.bitmap);
@@ -410,15 +353,16 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
     }
 
     private void addMap(VideoFrame videoFrame, Face.FaceInfo faceInfo, long time){
-        Bitmap faceImage = Bitmap.createBitmap(videoFrame.bitmap, faceInfo.getLeft(), faceInfo.getTop(), faceInfo.getWidth(), faceInfo.getHeight());
-        byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
         long trackId = getTrack();
         FacePersion facePersion = new FacePersion();
         facePersion.trackId = trackId;
         facePersion.faceInfo = faceInfo;
-        facePersion.faceDate = faceDate;
-        facePersion.faceDateW = faceInfo.getWidth();
-        facePersion.faceDateH = faceInfo.getHeight();
+        int tempW = faceInfo.getWidth() % 2 ==0 ? faceInfo.getWidth() : faceInfo.getWidth() -1;
+        int tempH = faceInfo.getHeight() % 2 ==0 ? faceInfo.getHeight() : faceInfo.getHeight() -1;
+//        facePersion.faceDate = Face.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
+        facePersion.faceDate = ImageUtil.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
+        facePersion.faceDateW = tempW;
+        facePersion.faceDateH = tempH;
         facePersion.time = time;
         if(videoFrame.trackMap==null){
             videoFrame.trackMap = new HashMap<>();
@@ -433,7 +377,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         camera.addCallbackBuffer(data);
-        if(data==null || data.length<=0 || initNum.get()<4){
+        if(data==null || data.length<=0 || initNum.get()<3){
             return;
         }
         VideoFrame videoFrame = new VideoFrame();
@@ -441,35 +385,19 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
         videoFrame.frame = Arrays.copyOf(data,data.length);
         videoFrame.width = width;
         videoFrame.height = height;
-//        synchronized (queueA) {
-//            // 将视频帧添加到队列A中，并通知队列A相关线程
-//            queueA.offer(videoFrame);
-//            queueA.notifyAll();
-//        }
 
-//        // 为了控制帧频，在这里转换帧数据 如果设备性能快，可以放回线程处理
-//        // 转换视频帧数据 格式、旋转等
-        long timeDetectFace = System.currentTimeMillis();
-        Bitmap bitmap ;
-        int _degrees = cameraActivity.getCameraId() == Camera.CameraInfo.CAMERA_FACING_BACK ? degrees : degrees + 90;
-        if(_degrees!=0){
-            if(matrix==null){
-                matrix = new Matrix();
-                matrix.setRotate(_degrees, width/2, height/2);
-            }
-            bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height, matrix);
-        }else{
-            bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height);
+        // 控制帧频
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        videoFrame.bitmap = bitmap;
-        videoFrame.frame = null;
+
         // 添加到队列B中，并通知队列B相关线程
         synchronized (queueB) {
             queueB.offer(videoFrame);
             queueB.notifyAll();
         }
-        timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-        Log.i(TAG, "nv21ToBitmap time:"+timeDetectFace+"ms");
 
         Log.i(TAG, "onPreviewFrame: "+videoFrame.time+" ms");
     }

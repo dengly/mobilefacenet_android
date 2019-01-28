@@ -25,12 +25,18 @@ public class Face {
         private int left, top, right, bottom;
         private Point[] points;
 
+        private int side(){
+            int w = right - left;
+            int h = bottom - top;
+            return w>h?w:h;
+        }
+
         public int getWidth() {
-            return right - left;
+            return side();
         }
 
         public int getHeight() {
-            return bottom - top;
+            return side();
         }
 
         public int getLeft() {
@@ -69,7 +75,7 @@ public class Face {
      * @param h
      * @return
      */
-    public byte[] yuv420sp2Rgb(byte[] yuv420sp, int w, int h){
+    public static byte[] yuv420sp2Rgb(byte[] yuv420sp, int w, int h){
         return Yuv420sp2Rgb(yuv420sp, w, h);
     }
 
@@ -142,7 +148,7 @@ public class Face {
 
     /**
      * 获取人脸特征码
-     * @param imageDate 图片数据 目前只支持RGB、BGR和RGBA
+     * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型
@@ -204,6 +210,13 @@ public class Face {
         return faceImageDate;
     }
 
+    public static byte[] cutNV21(byte[] nv21, int x, int y, int cutW, int cutH, int srcW, int srcH){
+        if(nv21 == null || nv21.length==0){
+            return null;
+        }
+        return CutNV21(nv21, x, y, cutW, cutH, srcW, srcH);
+    }
+
     /**
      * 人脸特征码对比
      * @param faceFeature1 人脸特征码1数据
@@ -241,7 +254,7 @@ public class Face {
 
     /**
      * 获取人脸特征码
-     * @param imageDate 图片数据 目前只支持RGB、BGR和RGBA
+     * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型
@@ -264,7 +277,9 @@ public class Face {
      * @param h
      * @return
      */
-    private native byte[] Yuv420sp2Rgb(byte[] yuv420sp, int w, int h);
+    private static native byte[] Yuv420sp2Rgb(byte[] yuv420sp, int w, int h);
+
+    private static native byte[] CutNV21(byte[] nv21, int x, int y, int cutW, int cutH, int srcW, int srcH);
 
     static {
         System.loadLibrary("Face");

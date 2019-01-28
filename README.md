@@ -17,3 +17,6 @@ A simple android demo for mobilefacenet on ncnn
 ![image](https://github.com/GRAYKEY/mobilefacenet_android/blob/master/result/same.png)<br>
 不同人<br>
 ![image](https://github.com/GRAYKEY/mobilefacenet_android/blob/master/result/different.png)<br>
+
+#### TODO
+通过`com.example.l.mobilefacenet.CameraPreviewCallback2`测试发现，ncnn在多线程多个Face引擎同时工作时整体性能会下降。需要优化ncnn库

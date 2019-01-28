@@ -162,20 +162,23 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
 
     unsigned char *faceImageCharDate = (unsigned char *) imageDate;
 
-    int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
     ncnn::Mat ncnn_img ;
-
+    unsigned char * pRgb;
     if(colorType != ColorType_NV21){
+        int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
         ncnn_img = ncnn::Mat::from_pixels(faceImageCharDate, pixel_type, imageWidth, imageHeight) ;
     }else{
         int rgb_len = 3 * imageWidth * imageHeight;
-        unsigned char * pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+        pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
         ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
         ncnn_img = ncnn::Mat::from_pixels(pRgb, ncnn::Mat::PIXEL_RGB, imageWidth, imageHeight) ;
     }
 
     jintArray tFaceInfo = faceDetect(env, faceEngine, ncnn_img);
     env->ReleaseByteArrayElements(imageDate_, imageDate, 0);
+    if(colorType == ColorType_NV21){
+        free(pRgb);
+    }
     return tFaceInfo;
 }
 
@@ -189,7 +192,7 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
         LOGD("未初始化，直接返回空");
         return NULL;
     }
-    if(colorType != ColorType_R8G8B8 && colorType != ColorType_B8G8R8 && colorType != ColorType_R8G8B8A8) {
+    if(colorType != ColorType_NV21 && colorType != ColorType_R8G8B8 && colorType != ColorType_B8G8R8 && colorType != ColorType_R8G8B8A8) {
         LOGD("colorType = %x，不支持",colorType);
         return NULL;
     }
@@ -199,10 +202,18 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
 
     unsigned char *faceImageCharDate = (unsigned char*)faceDate;
 
-    int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
-
-    // 没进行对齐操作，且以下对图像缩放的操作方法对结果影响较大。可改进空间很大，有能力的自己改改
-    ncnn::Mat ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharDate, pixel_type, w1, h1, 112, 112);
+    ncnn::Mat ncnn_img;
+    unsigned char * pRgb;
+    if(colorType != ColorType_NV21){
+        int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
+        // 没进行对齐操作，且以下对图像缩放的操作方法对结果影响较大。可改进空间很大，有能力的自己改改
+        ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharDate, pixel_type, w1, h1, 112, 112);
+    }else{
+        int rgb_len = 3 * w1 * h1;
+        pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+        ncnn::yuv420sp2rgb(faceImageCharDate, w1, h1, pRgb);
+        ncnn_img = ncnn::Mat::from_pixels_resize(pRgb, ncnn::Mat::PIXEL_RGB, w1, h1, 112, 112);
+    };
 
     std::vector<float> feature;
     // 获取人脸特征
@@ -220,6 +231,9 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
     jfloatArray tFaceFeature = env->NewFloatArray(feature_size);
     env->SetFloatArrayRegion(tFaceFeature, 0, feature_size, faceFeature);
     delete[] faceFeature;
+    if(colorType == ColorType_NV21){
+        free(pRgb);
+    }
     return tFaceFeature;
 }
 
@@ -254,7 +268,7 @@ Java_com_example_l_mobilefacenet_Face_FaceRecognize(JNIEnv *env, jobject instanc
  * nv21转rgb
  */
 JNIEXPORT jbyteArray JNICALL
-Java_com_example_l_mobilefacenet_Face_Yuv420sp2Rgb(JNIEnv *env, jobject instance,
+Java_com_example_l_mobilefacenet_Face_Yuv420sp2Rgb(JNIEnv *env, jclass clazz,
                                                    jbyteArray _yuv420sp, jint _w, jint _h) {
     jbyte * p_yuv420sp = env->GetByteArrayElements(_yuv420sp, NULL);
     unsigned char * pYuv420sp = (unsigned char*)p_yuv420sp;
@@ -266,6 +280,49 @@ Java_com_example_l_mobilefacenet_Face_Yuv420sp2Rgb(JNIEnv *env, jobject instance
     env->SetByteArrayRegion(rgb, 0, rgb_len, (jbyte *)pRgb);
     free(pRgb);
     return rgb;
+}
+
+/**
+ * nv21 裁剪
+ * 参考 https://blog.csdn.net/Magic_frank/article/details/70941111
+ */
+JNIEXPORT jbyteArray JNICALL
+Java_com_example_l_mobilefacenet_Face_CutNV21(JNIEnv *env, jclass clazz, jbyteArray _yuv420sp, jint x,
+            jint y, jint cutW, jint cutH, jint srcW, jint srcH) {
+    jbyte * p_yuv420sp = env->GetByteArrayElements(_yuv420sp, NULL);
+    unsigned char *srcNv21 = (unsigned char*)p_yuv420sp;
+
+    int i;
+    int j = 0;
+    int k = 0;
+
+    int len = cutW * cutH * 3 / 2 ;
+    unsigned char *tarNv21 = (unsigned char *)malloc(sizeof(unsigned char) * len);
+    //分配一段内存，用于存储裁剪后的Y分量
+    unsigned char *tmpY = (unsigned char *)malloc(sizeof(unsigned char) * cutW * cutH);
+    //分配一段内存，用于存储裁剪后的UV分量
+    unsigned char *tmpUV = (unsigned char *)malloc(sizeof(unsigned char) * cutW * cutH / 2);
+
+    for(i=y; i< cutH + y; i++) {
+        // 逐行拷贝Y分量，共拷贝cutW*cutH
+        memcpy(tmpY + j * cutW, srcNv21 + x + i * srcW, cutW);
+        j++;
+    }
+    for(i=y/2; i< (cutH + y) / 2; i++) {
+        //逐行拷贝UV分量，共拷贝cutW*cutH/2
+        memcpy(tmpUV + k * cutW, srcNv21 + x + srcW * srcH + i * srcW, cutW);
+        k++;
+    }
+    //将拷贝好的Y，UV分量拷贝到目标内存中
+    memcpy(tarNv21, tmpY, cutW * cutH);
+    memcpy(tarNv21 + cutW * cutH, tmpUV, cutW * cutH / 2);
+
+    jbyteArray rev = env->NewByteArray(len);
+    env->SetByteArrayRegion(rev, 0, len, (jbyte *)tarNv21);
+    free(tarNv21);
+    free(tmpUV);
+    free(tmpY);
+    return rev;
 }
 
 }

@@ -20,6 +20,41 @@ import java.nio.ByteBuffer;
 
 public class ImageUtil {
     /**
+     * nv21 裁剪
+     * 参考 https://blog.csdn.net/Magic_frank/article/details/70941111
+     */
+    public static byte[] cutNV21(byte[] srcNv21, int x, int y, int cutW, int cutH, int srcW, int srcH) {
+
+        int i;
+        int j = 0;
+        int k = 0;
+
+        int len = cutW * cutH * 3 / 2 ;
+        byte[] tarNv21 = new byte[len];
+        //分配一段内存，用于存储裁剪后的Y分量
+        byte[] tmpY = new byte[cutW * cutH];
+        //分配一段内存，用于存储裁剪后的UV分量
+        byte[] tmpUV = new byte[cutW * cutH / 2];
+
+        for(i=y; i< cutH + y; i++) {
+            // 逐行拷贝Y分量，共拷贝cutW*cutH
+            System.arraycopy(srcNv21,  x + i * srcW, tmpY, j * cutW, cutW);
+            j++;
+        }
+        for(i=y/2; i< (cutH + y) / 2; i++) {
+            //逐行拷贝UV分量，共拷贝cutW*cutH/2
+            System.arraycopy(srcNv21,  x + srcW * srcH + i * srcW, tmpUV, k * cutW, cutW);
+            k++;
+        }
+        //将拷贝好的Y，UV分量拷贝到目标内存中
+        System.arraycopy(tmpY,  0, tarNv21, 0, cutW * cutH);
+        System.arraycopy(tmpUV,  0, tarNv21, cutW * cutH, cutW * cutH / 2);
+        tmpY = null;
+        tmpUV = null;
+        return tarNv21;
+    }
+
+    /**
      * Bitmap转化为ARGB数据，再转化为NV21数据
      *
      * @param src    传入的Bitmap，格式为{@link Bitmap.Config#ARGB_8888}
