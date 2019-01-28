@@ -43,7 +43,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
     private ImageUtil.NV21ToBitmap nv21ToBitmap ;
     private int textSize = 40;
 
-    private static final int FACE_DETECT_NUM = 4;
+    private static final int FACE_DETECT_NUM = 2;
     private static final int FACE_RECOGNIZE_NUM = 2;
 
     private Queue<FaceEngine> queueFaceDetect = new ArrayBlockingQueue<>(FACE_DETECT_NUM+1);
@@ -402,7 +402,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
 
         // 控制帧频
         try {
-            Thread.sleep(40);
+            Thread.sleep(80);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -412,7 +412,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
             queueB.notifyAll();
         }
 
-        Log.i(TAG, "onPreviewFrame: "+videoFrame.time+" ms");
+//        Log.i(TAG, "onPreviewFrame: "+videoFrame.time+" ms");
     }
 
     public void setDegrees(int degrees) {
