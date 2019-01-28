@@ -1,15 +1,12 @@
 package com.example.l.mobilefacenet;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
 import android.util.Log;
-import android.widget.ImageView;
 
 import com.arcsoft.face.ErrorInfo;
 import com.arcsoft.face.FaceEngine;

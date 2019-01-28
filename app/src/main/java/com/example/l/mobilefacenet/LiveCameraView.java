@@ -26,8 +26,8 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
 
     private int textSize = 40;
     private ImageUtil.NV21ToBitmap nv21ToBitmap ;
-    private int width = 960;
-    private int height = 720;
+    private int width = 640;
+    private int height = 480;
     private int degrees;
     private CameraActivity cameraActivity;
     private int faceType;
@@ -100,8 +100,9 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         try {
             mCamera.setPreviewDisplay(holder);
 
-            if(faceType == 1){
-//                cameraPreviewCallback = new CameraPreviewCallback();
+            if(faceType == 2){
+                cameraPreviewCallback = new CameraPreviewCallback();
+            }else if(faceType == 1){
                 cameraPreviewCallback = new CameraPreviewCallback2();
             }else{
                 cameraPreviewCallback = new CameraPreviewCallback3(getContext());

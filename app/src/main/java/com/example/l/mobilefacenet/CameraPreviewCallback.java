@@ -21,8 +21,8 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
     private Face mFace = new Face();
     private int degrees;;
     private Matrix matrix;
-    private int width = 960;
-    private int height = 720;
+    private int width = 640;
+    private int height = 480;
     private CameraActivity cameraActivity;
     private ImageUtil.NV21ToBitmap nv21ToBitmap ;
     private int textSize = 40;

@@ -302,6 +302,16 @@ public class MainActivity extends AppCompatActivity {
                 faceType=1;
             }
         });
+        // ncnn-不优化
+        Button faceType2 = (Button) findViewById(R.id.faceType2);
+        faceType2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                camera0.setVisibility(View.VISIBLE);
+                camera1.setVisibility(View.VISIBLE);
+                faceType=2;
+            }
+        });
     }
 
     private void cameraVideo(int cameraId){
