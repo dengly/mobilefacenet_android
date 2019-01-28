@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
 import android.os.Environment;
 import android.util.Log;
 
@@ -17,7 +16,7 @@ import com.example.l.mobilefacenet.util.ImageUtil;
 import java.io.File;
 import java.util.List;
 
-public class CameraPreviewCallback implements PreviewCallback {
+public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
     private final static String TAG = LiveCameraView.class.getSimpleName();
     private Face mFace = new Face();
     private int degrees;;

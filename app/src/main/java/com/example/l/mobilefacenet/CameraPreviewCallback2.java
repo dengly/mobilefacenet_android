@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
 import android.os.Environment;
 import android.util.Log;
 
@@ -31,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CameraPreviewCallback2 implements PreviewCallback {
+public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
     private final static String TAG = LiveCameraView.class.getSimpleName();
     private int degrees;
     private Matrix matrix;
@@ -137,7 +136,7 @@ public class CameraPreviewCallback2 implements PreviewCallback {
 //                                        bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height);
 //                                    }
 //                                    videoFrame.bitmap = bitmap;
-//                                    videoFrame.frame = ImageUtil.getPixelsRGBA(bitmap);
+//                                    videoFrame.frame = null;
 //                                    timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 //                                    Log.i(TAG, "nv21ToBitmap time:"+timeDetectFace+"ms");
 //                                    // 添加到队列B中，并通知队列B相关线程
@@ -174,13 +173,14 @@ public class CameraPreviewCallback2 implements PreviewCallback {
                             tempVideoFrame = null;
                         }
                         final VideoFrame videoFrame = tempVideoFrame ;
-                        if(videoFrame!=null && videoFrame.frame != null && videoFrame.frame.length>0){
+                        if(videoFrame!=null && videoFrame.bitmap != null){
                             threadPoolB.execute(new Runnable() {
                                 @Override
                                 public void run() {
                                     // 人脸检测
                                     long timeDetectFace = System.currentTimeMillis();
                                     Face mFace = queueFaceDetect.poll();
+                                    videoFrame.frame = ImageUtil.getPixelsRGBA(videoFrame.bitmap);
                                     Face.FaceInfo[] faceInfos = mFace.faceDetect(videoFrame.frame, videoFrame.width, videoFrame.height, colorType);
                                     videoFrame.frame = null;
                                     timeDetectFace = System.currentTimeMillis() - timeDetectFace;
@@ -207,8 +207,6 @@ public class CameraPreviewCallback2 implements PreviewCallback {
                                                 if(!has){
                                                     // 新进人脸
                                                     addMap(videoFrame, faceInfo, time);
-                                                }else{
-                                                    videoFrame.frame = null;
                                                 }
                                             }
                                         }
@@ -302,7 +300,10 @@ public class CameraPreviewCallback2 implements PreviewCallback {
                                     Face.FaceInfo faceInfo = entry.getValue();
                                     canvas.drawRect(faceInfo.getLeft(), faceInfo.getTop(), faceInfo.getRight(), faceInfo.getBottom(), paint);
 
-                                    FacePersion facePersion = knownMap.get(entry.getKey());
+                                    FacePersion facePersion ;
+                                    synchronized (knownMap){
+                                        facePersion = knownMap.get(entry.getKey());
+                                    }
                                     if(facePersion!=null){
                                         paint.setColor(Color.GREEN);
                                         paint.setTextSize(textSize);
@@ -359,7 +360,9 @@ public class CameraPreviewCallback2 implements PreviewCallback {
                                             if(facePersion.score < Face.THRESHOLD){
                                                 facePersion.name = "未知";
                                             }
-                                            knownMap.put(facePersion.trackId, facePersion);
+                                            synchronized (knownMap){
+                                                knownMap.put(facePersion.trackId, facePersion);
+                                            }
                                         }
                                         timeDetectFace = System.currentTimeMillis() - timeDetectFace;
                                         queueFaceRecognize.offer(mFace);
@@ -459,7 +462,7 @@ public class CameraPreviewCallback2 implements PreviewCallback {
             bitmap = nv21ToBitmap.nv21ToBitmap(videoFrame.frame, width, height);
         }
         videoFrame.bitmap = bitmap;
-        videoFrame.frame = ImageUtil.getPixelsRGBA(bitmap);
+        videoFrame.frame = null;
         // 添加到队列B中，并通知队列B相关线程
         synchronized (queueB) {
             queueB.offer(videoFrame);

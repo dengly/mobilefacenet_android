@@ -10,7 +10,8 @@ public class Face {
     public enum ColorType {
         R8G8B8(0x101),
         B8G8R8(0x102),
-        R8G8B8A8(0x103);
+        R8G8B8A8(0x103),
+        NV21(0x104);
 
         private int code;
         private ColorType(int code) {
@@ -107,7 +108,7 @@ public class Face {
 
     /**
      * 人脸检测
-     * @param imageDate 图片数据 目前只支持RGB、BGR和RGBA
+     * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型
@@ -156,7 +157,7 @@ public class Face {
 
     /**
      * 获取人脸特征码
-     * @param imageDate 图片数据 目前只支持RGB、BGR和RGBA
+     * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型
@@ -230,7 +231,7 @@ public class Face {
 
     /**
      * 人脸检测
-     * @param imageDate 图片数据 目前只支持RGB、BGR和RGBA
+     * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型

@@ -1,5 +1,6 @@
 package com.example.l.mobilefacenet.model;
 
+import com.arcsoft.face.FaceInfo;
 import com.example.l.mobilefacenet.Face;
 
 public class FacePersion {
@@ -7,6 +8,7 @@ public class FacePersion {
     public Long trackId;
     // 人脸检查结果 类型根据实际情况修改
     public Face.FaceInfo faceInfo;
+    public FaceInfo arcsoftFaceInfo;
     // 人脸检查结果对应的人脸图片数据 类型根据实际情况修改
     public byte[] faceDate;
     public int faceDateW;

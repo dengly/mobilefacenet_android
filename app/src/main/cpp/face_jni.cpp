@@ -133,18 +133,20 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
     }
     struct FaceEngine * faceEngine = (struct FaceEngine *)pFaceEngine_;
 
-    if(colorType != ColorType_R8G8B8 && colorType != ColorType_B8G8R8 && colorType != ColorType_R8G8B8A8) {
+    if(colorType != ColorType_NV21 && colorType != ColorType_R8G8B8 && colorType != ColorType_B8G8R8 && colorType != ColorType_R8G8B8A8) {
         LOGD("colorType = %x，不支持",colorType);
         return NULL;
     }
     int imageChannel = colorType == ColorType_R8G8B8A8 ? 4 : 3;
 
-    int tImageDateLen = env->GetArrayLength(imageDate_);
-    if (imageChannel == tImageDateLen / imageWidth / imageHeight) {
-        LOGD("数据宽=%d,高=%d,通道=%d", imageWidth, imageHeight, imageChannel);
-    } else {
-        LOGD("数据长宽高通道不匹配，直接返回空");
-        return NULL;
+    if(colorType != ColorType_NV21){
+        int tImageDateLen = env->GetArrayLength(imageDate_);
+        if (imageChannel == tImageDateLen / imageWidth / imageHeight) {
+            LOGD("数据宽=%d,高=%d,通道=%d", imageWidth, imageHeight, imageChannel);
+        } else {
+            LOGD("数据长宽高通道不匹配，直接返回空");
+            return NULL;
+        }
     }
 
     jbyte *imageDate = env->GetByteArrayElements(imageDate_, NULL);
@@ -161,7 +163,16 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
     unsigned char *faceImageCharDate = (unsigned char *) imageDate;
 
     int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
-    ncnn::Mat ncnn_img = ncnn::Mat::from_pixels(faceImageCharDate, pixel_type, imageWidth, imageHeight);
+    ncnn::Mat ncnn_img ;
+
+    if(colorType != ColorType_NV21){
+        ncnn_img = ncnn::Mat::from_pixels(faceImageCharDate, pixel_type, imageWidth, imageHeight) ;
+    }else{
+        int rgb_len = 3 * imageWidth * imageHeight;
+        unsigned char * pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+        ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
+        ncnn_img = ncnn::Mat::from_pixels(pRgb, ncnn::Mat::PIXEL_RGB, imageWidth, imageHeight) ;
+    }
 
     jintArray tFaceInfo = faceDetect(env, faceEngine, ncnn_img);
     env->ReleaseByteArrayElements(imageDate_, imageDate, 0);

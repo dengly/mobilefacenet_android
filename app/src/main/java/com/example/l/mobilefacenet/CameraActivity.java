@@ -19,6 +19,7 @@ public class CameraActivity extends AppCompatActivity {
     private LiveCameraView liveCameraView;
     private ImageView imageView;
     private int cameraId;
+    private int faceType;
 
     private Persion persion;
 
@@ -56,9 +57,11 @@ public class CameraActivity extends AppCompatActivity {
 
         persion = (Persion)getIntent().getParcelableExtra("persion");
         cameraId = getIntent().getIntExtra("cameraId", Camera.CameraInfo.CAMERA_FACING_BACK);
+        faceType = getIntent().getIntExtra("faceType", 1);
 
         if(CameraHelper.hasCameraDevice(this)){
             Camera camera = CameraHelper.openCamera(cameraId);
+            liveCameraView.setFaceType(faceType);
             liveCameraView.setCamera(camera);
             liveCameraView.setActivity(this);
         }

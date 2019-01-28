@@ -2,6 +2,7 @@ package com.example.l.mobilefacenet.model;
 
 import android.graphics.Bitmap;
 
+import com.arcsoft.face.FaceInfo;
 import com.example.l.mobilefacenet.Face;
 
 import java.util.Map;
@@ -18,4 +19,5 @@ public class VideoFrame {
     public int height;
     // 相关人脸
     public Map<Long,Face.FaceInfo> trackMap;
+    public Map<Long,FaceInfo> arcsoftTrackMap;
 }

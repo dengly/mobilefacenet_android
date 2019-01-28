@@ -30,9 +30,9 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
     private int height = 720;
     private int degrees;
     private CameraActivity cameraActivity;
+    private int faceType;
 
-//    CameraPreviewCallback cameraPreviewCallback = new CameraPreviewCallback();
-    CameraPreviewCallback2 cameraPreviewCallback = new CameraPreviewCallback2();
+    AbstractCameraPreviewCallback cameraPreviewCallback ;
 
     public LiveCameraView(Context context) {
         this(context, null);
@@ -47,6 +47,10 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         mSurfaceHolder = this.getHolder();
         mSurfaceHolder.addCallback(this);
         nv21ToBitmap = new ImageUtil.NV21ToBitmap(context);
+    }
+
+    public void setFaceType(int faceType) {
+        this.faceType = faceType;
     }
 
     public void setActivity(CameraActivity cameraActivity) {
@@ -95,6 +99,13 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         checkCamera();
         try {
             mCamera.setPreviewDisplay(holder);
+
+            if(faceType == 1){
+//                cameraPreviewCallback = new CameraPreviewCallback();
+                cameraPreviewCallback = new CameraPreviewCallback2();
+            }else{
+                cameraPreviewCallback = new CameraPreviewCallback3(getContext());
+            }
 
             cameraPreviewCallback.setCameraActivity(cameraActivity);
             cameraPreviewCallback.setDegrees(degrees);
