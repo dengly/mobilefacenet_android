@@ -226,7 +226,6 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
     env->SetFloatArrayRegion(tFaceFeature, 0, feature_size, faceFeature);
     delete[] faceFeature;
 
-    env->ReleaseByteArrayElements(faceDate_, faceDate, 0);
     if(colorType == ColorType_NV21){
         free(pRgb);
     }
