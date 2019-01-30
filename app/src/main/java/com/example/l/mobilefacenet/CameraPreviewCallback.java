@@ -71,8 +71,18 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
                 canvas.drawRect(faceInfo.getLeft(), faceInfo.getTop(), faceInfo.getRight(), faceInfo.getBottom(), paint);
 
                 timeDetectFace = System.currentTimeMillis();
-                int tempW = faceInfo.getWidth() % 2 ==0 ? faceInfo.getWidth() : faceInfo.getWidth() -1;
-                int tempH = faceInfo.getHeight() % 2 ==0 ? faceInfo.getHeight() : faceInfo.getHeight() -1;
+
+                int tempW,tempH;
+                if((faceInfo.getMaxSide()+faceInfo.getLeft()) > width
+                        || (faceInfo.getMaxSide()+faceInfo.getTop()) > height){
+                    tempW = faceInfo.getWidth();
+                    tempH = faceInfo.getHeight();
+                }else{
+                    tempW = faceInfo.getMaxSide();
+                    tempH = faceInfo.getMaxSide();
+                }
+                tempW = tempW % 2 ==0 ? tempW : tempW -1;
+                tempH = tempH % 2 ==0 ? tempH : tempH -1;
                 //byte[] faceDate = Face.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
                 byte[] faceDate = ImageUtil.cutNV21(frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
                 float[] feature = mFace.faceFeature(faceDate, tempW, tempH, Face.ColorType.NV21);

@@ -25,18 +25,18 @@ public class Face {
         private int left, top, right, bottom;
         private Point[] points;
 
-        private int side(){
+        public int getMaxSide(){
             int w = right - left;
             int h = bottom - top;
             return w>h?w:h;
         }
 
         public int getWidth() {
-            return side();
+            return right - left;
         }
 
         public int getHeight() {
-            return side();
+            return bottom - top;
         }
 
         public int getLeft() {

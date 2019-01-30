@@ -348,8 +348,18 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
         FacePersion facePersion = new FacePersion();
         facePersion.trackId = trackId;
         facePersion.faceInfo = faceInfo;
-        int tempW = faceInfo.getWidth() % 2 ==0 ? faceInfo.getWidth() : faceInfo.getWidth() -1;
-        int tempH = faceInfo.getHeight() % 2 ==0 ? faceInfo.getHeight() : faceInfo.getHeight() -1;
+
+        int tempW,tempH;
+        if((faceInfo.getMaxSide()+faceInfo.getLeft()) > width
+                || (faceInfo.getMaxSide()+faceInfo.getTop()) > height){
+            tempW = faceInfo.getWidth();
+            tempH = faceInfo.getHeight();
+        }else{
+            tempW = faceInfo.getMaxSide();
+            tempH = faceInfo.getMaxSide();
+        }
+        tempW = tempW % 2 ==0 ? tempW : tempW -1;
+        tempH = tempH % 2 ==0 ? tempH : tempH -1;
 //        facePersion.faceDate = Face.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
         facePersion.faceDate = ImageUtil.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
         facePersion.faceDateW = tempW;
