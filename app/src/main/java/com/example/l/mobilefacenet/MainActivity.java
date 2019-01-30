@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
         }
         faceImage1=null;
         Persion persion;
-        if(faceType == 1){
+        if(faceType == 1 || faceType == 2){
             //detect
             byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
             int width = yourSelectedImage1.getWidth();

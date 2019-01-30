@@ -42,8 +42,6 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
     private static final int FACE_DETECT_NUM = 2;
     private static final int FACE_RECOGNIZE_NUM = 2;
 
-//    private Queue<Face> queueFaceDetect = new ArrayBlockingQueue<>(FACE_DETECT_NUM+1);
-//    private Queue<Face> queueFaceRecognize = new ArrayBlockingQueue<>(FACE_RECOGNIZE_NUM+1);
     private Face mFace;
 
     private Map<Long, FacePersion> map = new HashMap<>();
@@ -67,25 +65,31 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
         File sdDir = Environment.getExternalStorageDirectory();//get directory
         String sdPath = sdDir.toString() + "/facem/";
         int minFaceSize = CommonUtil.sqrt(CommonUtil.area(width, height) / Face.MIN_FACE_SIZE_SCALE);
-//        int threadNum = 1;
-//        for(int i=0; i<FACE_DETECT_NUM+1; i++){
-//            Face face = new Face();
-//            face.faceModelInit(sdPath, threadNum, minFaceSize);
-//            queueFaceDetect.offer(face);
-//        }
-//        for(int i=0; i<FACE_RECOGNIZE_NUM+1; i++){
-//            Face face = new Face();
-//            face.faceModelInit(sdPath, threadNum, minFaceSize);
-//            queueFaceRecognize.offer(face);
-//        }
+        int threadNum = 2;
         mFace = new Face();
-        mFace.faceModelInit(sdPath, 2, minFaceSize);
+        mFace.faceModelInit(sdPath, threadNum, minFaceSize);
         startService();
     }
 
     public void stop(){
         stop = true;
-        mFace.faceModelUnInit();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if(initNum.get()<=0){
+                        mFace.faceModelUnInit();
+                        mFace = null;
+                        break;
+                    }
+                }
+            }
+        }).start();
     }
 
     public long getTrack(){
@@ -121,7 +125,6 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                 public void run() {
                                     // 人脸检测
                                     long timeDetectFace = System.currentTimeMillis();
-//                                    Face mFace = queueFaceDetect.poll();
                                     Face.FaceInfo[] faceInfos = mFace.faceDetect(videoFrame.frame, videoFrame.width, videoFrame.height, colorType);
                                     timeDetectFace = System.currentTimeMillis() - timeDetectFace;
                                     Log.i(TAG, "detect face time:"+timeDetectFace+"ms");
@@ -191,17 +194,12 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                             queueC.notifyAll();
                                         }
                                     }
-//                                    queueFaceDetect.offer(mFace);
                                 }
                             });
                         }
                     }
                 }
-//                int size = queueFaceDetect.size();
-//                for(int i=0; i<size; i++){
-//                    Face mFace = queueFaceDetect.poll();
-//                    mFace.faceModelUnInit();
-//                }
+                initNum.decrementAndGet();
             }
         }).start();
         new Thread(new Runnable() {
@@ -259,6 +257,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                         }
                     }
                 }
+                initNum.decrementAndGet();
             }
         }).start();
         new Thread(new Runnable() {
@@ -283,11 +282,9 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                     public void run() {
                                         // 人脸特征提取及比对
                                         long timeDetectFace = System.currentTimeMillis();
-//                                        Face mFace = queueFaceRecognize.poll();
                                         float[] feature = mFace.faceFeature(facePersion.faceDate, facePersion.faceDateW, facePersion.faceDateH, colorType);
                                         facePersion.faceDate = null;
                                         if(feature==null || feature.length==0){
-//                                            queueFaceRecognize.offer(mFace);
                                             return;
                                         }
                                         if(persions!=null && persions.size()>0){
@@ -307,7 +304,6 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                             }
                                         }
                                         timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-//                                        queueFaceRecognize.offer(mFace);
                                         Log.i(TAG, "recognize face time:"+timeDetectFace+"ms");
                                     }
                                 });
@@ -316,11 +312,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                         }
                     }
                 }
-//                int size = queueFaceRecognize.size();
-//                for(int i=0; i<size; i++){
-//                    Face mFace = queueFaceRecognize.poll();
-//                    mFace.faceModelUnInit();
-//                }
+                initNum.decrementAndGet();
             }
         }).start();
     }

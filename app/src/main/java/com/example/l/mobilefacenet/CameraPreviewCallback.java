@@ -3,6 +3,7 @@ package com.example.l.mobilefacenet;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.hardware.Camera;
@@ -14,12 +15,13 @@ import com.example.l.mobilefacenet.util.CommonUtil;
 import com.example.l.mobilefacenet.util.ImageUtil;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
     private final static String TAG = LiveCameraView.class.getSimpleName();
     private Face mFace = new Face();
-    private int degrees;;
+    private int degrees;
     private Matrix matrix;
     private int width = 640;
     private int height = 480;
@@ -36,69 +38,44 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
 //        mFace.faceModelInit(sdPath, AndroidUtil.getNumberOfCPUCores()*2, Face.MIN_FACE_SIZE);
 //        int minFaceSize = CommonUtil.max(width, height) / Face.MIN_FACE_SIZE_SIDE_SCALE;
         int minFaceSize = CommonUtil.sqrt(CommonUtil.area(width, height) / Face.MIN_FACE_SIZE_SCALE);
-        int threadNum = 2;
+        int threadNum = 4;
         mFace.faceModelInit(sdPath, threadNum, minFaceSize);
     }
 
     public void stop(){
         if(mFace!=null){
             mFace.faceModelUnInit();
+            mFace = null;
         }
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        Bitmap bitmap ;
-        int _degrees = cameraActivity.getCameraId() == Camera.CameraInfo.CAMERA_FACING_BACK ? degrees : degrees + 90;
-        if(_degrees!=0){
-            if(matrix==null){
-                matrix = new Matrix();
-                matrix.setRotate(_degrees, width/2, height/2);
-            }
-            bitmap = nv21ToBitmap.nv21ToBitmap(data, width, height, matrix);
-        }else{
-            bitmap = nv21ToBitmap.nv21ToBitmap(data, width, height);
-        }
-
-        byte[] imageDate = ImageUtil.getPixelsRGBA(bitmap);
-        Face.ColorType colorType = Face.ColorType.R8G8B8A8;
-
-//                    byte[] imageDate = mFace.yuv420sp2Rgb(data, width, height);
-//                    bitmap = ImageUtil.rgb2Bitmap(imageDate, width, height);
-//                    Face.ColorType colorType = Face.ColorType.R8G8B8;
-
+        camera.addCallbackBuffer(data);
+        final byte[] frame = Arrays.copyOf(data,data.length);
         long timeDetectFace = System.currentTimeMillis();
-        Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,colorType);
+        Face.FaceInfo[] faceInfos = mFace.faceDetect(frame, width, height, Face.ColorType.NV21);
         timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
         Log.i(TAG, "detect face time:"+timeDetectFace+"ms");
         if(faceInfos !=null && faceInfos.length>0){
-//                        Log.i(TAG, "pic width："+width+" height："+height+" face num：" + faceInfos.length );
-            Bitmap drawBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+            Bitmap drawBitmap = nv21ToBitmap.nv21ToBitmap(frame, width, height);
             for(int i=0;i<faceInfos.length; i++) {
+                Face.FaceInfo faceInfo = faceInfos[i];
+
                 Canvas canvas = new Canvas(drawBitmap);
                 Paint paint = new Paint();
                 paint.setColor(Color.BLUE);
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setStrokeWidth(5);
-                canvas.drawRect(faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getRight(), faceInfos[i].getBottom(), paint);
-//                            for(Point p : faceInfos[i].getPoints()){
-//                                paint.setColor(Color.RED);
-//                                canvas.drawPoint(p.x,p.y,paint);
-//                            }
+                canvas.drawRect(faceInfo.getLeft(), faceInfo.getTop(), faceInfo.getRight(), faceInfo.getBottom(), paint);
 
-                // 这个方式比较慢
-//                            timeDetectFace = System.currentTimeMillis();
-//                            float[] feature = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8,faceInfos[i]);
-//                            double score = mFace.faceRecognize(feature, cameraActivity.getPersion().getFaceFeature());
-//                            timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-//                            Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score"+score);
-
-                // 以下方式比上面的要快
                 timeDetectFace = System.currentTimeMillis();
-                Bitmap faceImage = Bitmap.createBitmap(bitmap, faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getWidth(), faceInfos[i].getHeight());
-                byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
-                float[] feature = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
+                int tempW = faceInfo.getWidth() % 2 ==0 ? faceInfo.getWidth() : faceInfo.getWidth() -1;
+                int tempH = faceInfo.getHeight() % 2 ==0 ? faceInfo.getHeight() : faceInfo.getHeight() -1;
+                //byte[] faceDate = Face.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
+                byte[] faceDate = ImageUtil.cutNV21(frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
+                float[] feature = mFace.faceFeature(faceDate, tempW, tempH, Face.ColorType.NV21);
                 double maxScore=0;
                 int index=-1;
                 for(int j =0; j<persions.size(); j++){
@@ -106,26 +83,24 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
                     double score = mFace.faceRecognize(feature, persion.getFaceFeature());
                     if(score > maxScore){
                         index = j;
+                        maxScore = score;
                     }
                 }
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-                Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score"+maxScore);
+                Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score:"+maxScore);
 
+                paint.setColor(Color.GREEN);
+                paint.setTextSize(textSize);
+                paint.setStrokeWidth(3);
+                paint.setTextAlign(Paint.Align.LEFT);
                 if(maxScore > Face.THRESHOLD){
-                    paint.setColor(Color.GREEN);
-                    paint.setTextSize(textSize);
-                    paint.setStrokeWidth(3);
-                    paint.setTextAlign(Paint.Align.LEFT);
-                    canvas.drawText(persions.get(index).getName(),faceInfos[i].getLeft(),faceInfos[i].getTop(),paint);
+                    canvas.drawText(String.format("%s-%.3f", persions.get(index).getName(), maxScore),faceInfo.getLeft(),faceInfo.getTop(),paint);
+                }else{
+                    canvas.drawText(String.format("未知-%.3f", maxScore),faceInfo.getLeft(),faceInfo.getTop(),paint);
                 }
             }
             cameraActivity.updateImageView(drawBitmap);
         }
-
-//                    if((System.currentTimeMillis() - lastUpdate) > 5 * 1000){
-//                        cameraActivity.updateImageView(bitmap);
-//                        lastUpdate = System.currentTimeMillis();
-//                    }
     }
 
     public void setDegrees(int degrees) {

@@ -58,7 +58,9 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     public void stop(){
-        cameraPreviewCallback.stop();
+        if(cameraPreviewCallback!=null) {
+            cameraPreviewCallback.stop();
+        }
     }
 
     @Override

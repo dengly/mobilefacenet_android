@@ -60,10 +60,26 @@ public class CameraActivity extends AppCompatActivity {
         faceType = getIntent().getIntExtra("faceType", 1);
 
         if(CameraHelper.hasCameraDevice(this)){
-            Camera camera = CameraHelper.openCamera(cameraId);
-            liveCameraView.setFaceType(faceType);
-            liveCameraView.setCamera(camera);
-            liveCameraView.setActivity(this);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true){
+                        Camera camera = CameraHelper.openCamera(cameraId);
+                        if(camera!=null){
+                            liveCameraView.setFaceType(faceType);
+                            liveCameraView.setCamera(camera);
+                            liveCameraView.setActivity(CameraActivity.this);
+                            break;
+                        }else{
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }).start();
         }
     }
 
