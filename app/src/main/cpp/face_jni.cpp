@@ -84,41 +84,6 @@ Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject insta
 
 }
 
-
-jintArray faceDetect(JNIEnv *env, struct FaceEngine * faceEngine, ncnn::Mat ncnn_img){
-    LOGD("JNI开始检测人脸");
-    int32_t minFaceSize = faceEngine->minFaceSize;
-    faceEngine->detect->SetMinFace(minFaceSize);
-
-    std::vector<Bbox> finalBbox;
-    // 开始人脸检测
-    faceEngine->detect->start(ncnn_img, finalBbox);
-
-    int32_t num_face = static_cast<int32_t>(finalBbox.size());
-    LOGD("检测到的人脸数目：%d\n", num_face);
-
-    int out_size = 1 + num_face * 14;
-    //  LOGD("内部人脸检测完成,开始导出数据");
-    int *faceInfo = new int[out_size];
-    faceInfo[0] = num_face;
-    for (int i = 0; i < num_face; i++) {
-        faceInfo[14 * i + 1] = finalBbox[i].x1;//left
-        faceInfo[14 * i + 2] = finalBbox[i].y1;//top
-        faceInfo[14 * i + 3] = finalBbox[i].x2;//right
-        faceInfo[14 * i + 4] = finalBbox[i].y2;//bottom
-        for (int j = 0; j < 10; j++) { // 五个关键点 x1,x2,x3,x4,x5,y1,y2,y3,y4,y5
-            faceInfo[14 * i + 5 + j] = static_cast<int>(finalBbox[i].ppoint[j]);
-        }
-    }
-
-    jintArray tFaceInfo = env->NewIntArray(out_size);
-    env->SetIntArrayRegion(tFaceInfo, 0, out_size, faceInfo);
-    //  LOGD("内部人脸检测完成,导出数据成功");
-    delete[] faceInfo;
-
-    return tFaceInfo;
-}
-
 /**
  * 人脸检测
  */
@@ -174,7 +139,36 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
         ncnn_img = ncnn::Mat::from_pixels(pRgb, ncnn::Mat::PIXEL_RGB, imageWidth, imageHeight) ;
     }
 
-    jintArray tFaceInfo = faceDetect(env, faceEngine, ncnn_img);
+    LOGD("JNI开始检测人脸");
+    int32_t minFaceSize = faceEngine->minFaceSize;
+    faceEngine->detect->SetMinFace(minFaceSize);
+
+    std::vector<Bbox> finalBbox;
+    // 开始人脸检测
+    faceEngine->detect->start(ncnn_img, finalBbox);
+
+    int32_t num_face = static_cast<int32_t>(finalBbox.size());
+    LOGD("检测到的人脸数目：%d\n", num_face);
+
+    int out_size = 1 + num_face * 14;
+    //  LOGD("内部人脸检测完成,开始导出数据");
+    int *faceInfo = new int[out_size];
+    faceInfo[0] = num_face;
+    for (int i = 0; i < num_face; i++) {
+        faceInfo[14 * i + 1] = finalBbox[i].x1;//left
+        faceInfo[14 * i + 2] = finalBbox[i].y1;//top
+        faceInfo[14 * i + 3] = finalBbox[i].x2;//right
+        faceInfo[14 * i + 4] = finalBbox[i].y2;//bottom
+        for (int j = 0; j < 10; j++) { // 五个关键点 x1,x2,x3,x4,x5,y1,y2,y3,y4,y5
+            faceInfo[14 * i + 5 + j] = static_cast<int>(finalBbox[i].ppoint[j]);
+        }
+    }
+
+    jintArray tFaceInfo = env->NewIntArray(out_size);
+    env->SetIntArrayRegion(tFaceInfo, 0, out_size, faceInfo);
+    //  LOGD("内部人脸检测完成,导出数据成功");
+    delete[] faceInfo;
+
     env->ReleaseByteArrayElements(imageDate_, imageDate, 0);
     if(colorType == ColorType_NV21){
         free(pRgb);
@@ -231,6 +225,8 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
     jfloatArray tFaceFeature = env->NewFloatArray(feature_size);
     env->SetFloatArrayRegion(tFaceFeature, 0, feature_size, faceFeature);
     delete[] faceFeature;
+
+    env->ReleaseByteArrayElements(faceDate_, faceDate, 0);
     if(colorType == ColorType_NV21){
         free(pRgb);
     }
@@ -278,6 +274,7 @@ Java_com_example_l_mobilefacenet_Face_Yuv420sp2Rgb(JNIEnv *env, jclass clazz,
 
     jbyteArray rgb = env->NewByteArray(rgb_len);
     env->SetByteArrayRegion(rgb, 0, rgb_len, (jbyte *)pRgb);
+    env->ReleaseByteArrayElements(_yuv420sp, p_yuv420sp, 0);
     free(pRgb);
     return rgb;
 }
@@ -319,6 +316,7 @@ Java_com_example_l_mobilefacenet_Face_CutNV21(JNIEnv *env, jclass clazz, jbyteAr
 
     jbyteArray rev = env->NewByteArray(len);
     env->SetByteArrayRegion(rev, 0, len, (jbyte *)tarNv21);
+    env->ReleaseByteArrayElements(_yuv420sp, p_yuv420sp, 0);
     free(tarNv21);
     free(tmpUV);
     free(tmpY);
