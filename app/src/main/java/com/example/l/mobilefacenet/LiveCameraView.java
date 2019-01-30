@@ -98,7 +98,9 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void startPreviewDisplay(SurfaceHolder holder){
-        checkCamera();
+        if(mCamera==null){
+            return;
+        }
         try {
             mCamera.setPreviewDisplay(holder);
 
@@ -131,7 +133,9 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void stopPreviewDisplay(){
-        checkCamera();
+        if(mCamera==null){
+            return;
+        }
         try {
             mCamera.stopPreview();
         } catch (Exception e){
@@ -139,9 +143,12 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
-    private void checkCamera(){
-        if(mCamera == null) {
-            throw new IllegalStateException("Camera must be set when start/stop preview, call <setCamera(Camera)> to set");
+    public void releaseCamera() {
+        if(mCamera!=null){
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mCamera.release();
+            mCamera = null;
         }
     }
 }

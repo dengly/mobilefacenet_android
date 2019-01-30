@@ -59,28 +59,20 @@ public class CameraActivity extends AppCompatActivity {
         cameraId = getIntent().getIntExtra("cameraId", Camera.CameraInfo.CAMERA_FACING_BACK);
         faceType = getIntent().getIntExtra("faceType", 1);
 
-        if(CameraHelper.hasCameraDevice(this)){
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while(true){
-                        Camera camera = CameraHelper.openCamera(cameraId);
-                        if(camera!=null){
-                            liveCameraView.setFaceType(faceType);
-                            liveCameraView.setCamera(camera);
-                            liveCameraView.setActivity(CameraActivity.this);
-                            break;
-                        }else{
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }).start();
+
+        Camera camera = CameraHelper.openCamera(cameraId);
+        if(camera!=null){
+            liveCameraView.setFaceType(faceType);
+            liveCameraView.setCamera(camera);
+            liveCameraView.setActivity(CameraActivity.this);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        liveCameraView.releaseCamera();
+        this.finish();
     }
 
     public void updateImageView(final Bitmap bitmap){

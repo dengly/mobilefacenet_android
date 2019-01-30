@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,8 +38,9 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
     private ImageUtil.NV21ToBitmap nv21ToBitmap ;
     private int textSize = 40;
 
-    private static final int FACE_DETECT_NUM = 2;
-    private static final int FACE_RECOGNIZE_NUM = 2;
+    private static final int FACE_DETECT_NUM = 1;
+    private static final int FACE_RECOGNIZE_NUM = 1;
+    private static final int waitTime = 10;
 
     private Face mFace;
 
@@ -105,7 +105,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                     synchronized (queueB){
                         if(queueB.size() == 0){
                             try {
-                                queueB.wait(20);
+                                queueB.wait(waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -210,7 +210,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                     synchronized (queueC){
                         if(queueC.isEmpty()){
                             try {
-                                queueC.wait(20);
+                                queueC.wait(waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -268,7 +268,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                     synchronized (map){
                         if(map.size() == 0){
                             try {
-                                map.wait(20);
+                                map.wait(waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }

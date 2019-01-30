@@ -45,6 +45,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
 
     private static final int FACE_DETECT_NUM = 2;
     private static final int FACE_RECOGNIZE_NUM = 2;
+    private static final int waitTime = 10;
 
     private Queue<FaceEngine> queueFaceDetect = new ArrayBlockingQueue<>(FACE_DETECT_NUM+1);
     private Queue<FaceEngine> queueFaceRecognize = new ArrayBlockingQueue<>(FACE_RECOGNIZE_NUM+1);
@@ -105,7 +106,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
                     synchronized (queueB){
                         if(queueB.size() == 0){
                             try {
-                                queueB.wait(20);
+                                queueB.wait(waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -225,7 +226,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
                     synchronized (queueC){
                         if(queueC.isEmpty()){
                             try {
-                                queueC.wait(20);
+                                queueC.wait(waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -282,7 +283,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
                     synchronized (map){
                         if(map.size() == 0){
                             try {
-                                map.wait(20);
+                                map.wait(waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -402,7 +403,7 @@ public class CameraPreviewCallback3 implements AbstractCameraPreviewCallback {
 
         // 控制帧频
         try {
-            Thread.sleep(80);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
