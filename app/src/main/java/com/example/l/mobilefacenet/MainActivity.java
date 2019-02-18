@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
             FileUtil.copyBigDataToSD(this.getAssets(), "recognition.param");
             FileUtil.copyBigDataToSD(this.getAssets(), "mobilenet_ssd_ncnn.proto");
             FileUtil.copyBigDataToSD(this.getAssets(), "mobilenet_ssd_ncnn.bin");
+            FileUtil.copyBigDataToSD(this.getAssets(), "mobilenet_ssd_ncnn2.param");
+            FileUtil.copyBigDataToSD(this.getAssets(), "mobilenet_ssd_ncnn2.bin");
         } catch (IOException e) {
             e.printStackTrace();
         }

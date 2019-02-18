@@ -7,8 +7,10 @@
 namespace Face {
 
     MobilenetSSDDetection::MobilenetSSDDetection(const std::string &model_path) {
-        std::string param_files = model_path + "/mobilenet_ssd_ncnn.proto";
-        std::string bin_files = model_path + "/mobilenet_ssd_ncnn.bin";
+//        std::string param_files = model_path + "/mobilenet_ssd_ncnn.proto";
+//        std::string bin_files = model_path + "/mobilenet_ssd_ncnn.bin";
+        std::string param_files = model_path + "mobilenet_ssd_ncnn2.param";
+        std::string bin_files = model_path + "mobilenet_ssd_ncnn2.bin";
         SSDDetectionNet.load_param(param_files.c_str());
         SSDDetectionNet.load_model(bin_files.c_str());
     }
@@ -18,13 +20,18 @@ namespace Face {
     }
 
     int MobilenetSSDDetection::detectFace(const ncnn::Mat &img, std::vector<Bbox> &boxes){
-        float mean_vals[3] = { 104.0f, 117.0f, 123.0f };
+//        const float mean_vals[3] = { 104.0f, 117.0f, 123.0f };
+        const float mean_vals[3] = {127.5f, 127.5f, 127.5f};
+        const float norm_vals[3] = {1.0/127.5,1.0/127.5,1.0/127.5};
 
         const int cols = img.w;
         const int rows = img.h;
 //        Mat in = ncnn::Mat::from_pixels_resize((unsigned char*)img.data, ncnn::Mat::PIXEL_BGR, cols, rows, 224, 224);
         Mat in = img;
-        in.substract_mean_normalize(mean_vals, 0);
+
+//        in.substract_mean_normalize(mean_vals, 0);
+        in.substract_mean_normalize(mean_vals, norm_vals);
+
         Mat out;
         Extractor ex = SSDDetectionNet.create_extractor();
         ex.set_light_mode(true);
