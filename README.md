@@ -7,6 +7,9 @@ A simple android demo for mobilefacenet on ncnn
 前向卷积框架使用ncnn。<br>
 简单测试demo，没有人脸对齐部分。<br>
 
+## 实测
+MTCNN 比 SSD模型要好
+
 ---
 # 注意事项
 第一次运行可能出现未检测到人脸的情况。确保根目录下存在模型文件夹。清理内存后再重启运行，多试几次。这个问题我不知道怎么解决。
