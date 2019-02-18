@@ -9,6 +9,7 @@
 #include "net.h"
 #include "mat.h"
 #include "face.h"
+#include "common.h"
 
 using namespace Face;
 #define TAG "DetectSo"
@@ -54,8 +55,10 @@ Java_com_example_l_mobilefacenet_Face_FaceModelInit(JNIEnv *env, jobject instanc
     pFaceEngine->threadNum = threadNum;
     pFaceEngine->minFaceSize = minFaceSize;
     pFaceEngine->detect = new Detect(tFaceModelDir);
+    pFaceEngine->ssdDetection = new MobilenetSSDDetection(tFaceModelDir);
     pFaceEngine->recognize = new Recognize(tFaceModelDir);
     pFaceEngine->detect->SetThreadNum(pFaceEngine->threadNum);
+    pFaceEngine->ssdDetection->SetThreadNum(pFaceEngine->threadNum);
     pFaceEngine->recognize->SetThreadNum(pFaceEngine->threadNum);
 
     env->ReleaseStringUTFChars(faceDetectionModelPath_, faceDetectionModelPath);
@@ -76,6 +79,7 @@ Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject insta
 
     delete faceEngine->detect;
     delete faceEngine->recognize;
+    delete faceEngine->ssdDetection;
 
     free(faceEngine);
 
@@ -89,7 +93,7 @@ Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject insta
  */
 JNIEXPORT jintArray JNICALL
 Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, jlong pFaceEngine_,
-                                                 jbyteArray imageDate_, jint imageWidth,
+                                                 jint detectType, jbyteArray imageDate_, jint imageWidth,
                                                  jint imageHeight, jint colorType) {
     LOGD("JNI开始检测人脸");
     if (pFaceEngine_ == 0) {
@@ -129,23 +133,49 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
 
     ncnn::Mat ncnn_img ;
     unsigned char * pRgb;
-    if(colorType != ColorType_NV21){
-        int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
-        ncnn_img = ncnn::Mat::from_pixels(faceImageCharDate, pixel_type, imageWidth, imageHeight) ;
-    }else{
-        int rgb_len = 3 * imageWidth * imageHeight;
-        pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
-        ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
-        ncnn_img = ncnn::Mat::from_pixels(pRgb, ncnn::Mat::PIXEL_RGB, imageWidth, imageHeight) ;
+    int scale = 1;
+    if(detectType == 0){
+        if(colorType != ColorType_NV21){
+            int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR2RGB : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2RGB : ncnn::Mat::PIXEL_RGB ;
+            ncnn_img = ncnn::Mat::from_pixels(faceImageCharDate, pixel_type, imageWidth, imageHeight) ;
+        }else{
+            int rgb_len = 3 * imageWidth * imageHeight;
+            pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+            ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
+            ncnn_img = ncnn::Mat::from_pixels(pRgb, ncnn::Mat::PIXEL_RGB, imageWidth, imageHeight) ;
+        }
+    }else if(detectType == 1){
+        int min = imageWidth > imageHeight ? imageHeight : imageWidth ;
+        while(true){
+            if(min / scale < 224){
+//                scale = scale / 2;
+                break;
+            }
+            scale = scale * 2;
+        }
+        if(colorType != ColorType_NV21){
+            int pixel_type = colorType == ColorType_B8G8R8 ? ncnn::Mat::PIXEL_BGR : colorType == ColorType_R8G8B8A8 ? ncnn::Mat::PIXEL_RGBA2BGR : ncnn::Mat::PIXEL_RGB2BGR ;
+            ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharDate, pixel_type, imageWidth, imageHeight, imageWidth / scale, imageHeight / scale) ;
+        }else{
+            int rgb_len = 3 * imageWidth * imageHeight;
+            pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+            ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
+            ncnn_img = ncnn::Mat::from_pixels_resize(pRgb, ncnn::Mat::PIXEL_RGB2BGR, imageWidth, imageHeight, imageWidth / scale, imageHeight / scale) ;
+        }
     }
 
     LOGD("JNI开始检测人脸");
-    int32_t minFaceSize = faceEngine->minFaceSize;
-    faceEngine->detect->SetMinFace(minFaceSize);
 
     std::vector<Bbox> finalBbox;
-    // 开始人脸检测
-    faceEngine->detect->start(ncnn_img, finalBbox);
+    // detectType 检测类型 0使用mtcnn方法检测，1使用ssd方法检测
+    if(detectType == 0){
+        int32_t minFaceSize = faceEngine->minFaceSize;
+        faceEngine->detect->SetMinFace(minFaceSize);
+        // 开始人脸检测
+        faceEngine->detect->start(ncnn_img, finalBbox);
+    }else if(detectType == 1){
+        faceEngine->ssdDetection->detectFace(ncnn_img, finalBbox);
+    }
 
     int32_t num_face = static_cast<int32_t>(finalBbox.size());
     LOGD("检测到的人脸数目：%d\n", num_face);
@@ -155,12 +185,12 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
     int *faceInfo = new int[out_size];
     faceInfo[0] = num_face;
     for (int i = 0; i < num_face; i++) {
-        faceInfo[14 * i + 1] = finalBbox[i].x1;//left
-        faceInfo[14 * i + 2] = finalBbox[i].y1;//top
-        faceInfo[14 * i + 3] = finalBbox[i].x2;//right
-        faceInfo[14 * i + 4] = finalBbox[i].y2;//bottom
+        faceInfo[14 * i + 1] = detectType == 1 ? finalBbox[i].x1 * scale : finalBbox[i].x1;//left
+        faceInfo[14 * i + 2] = detectType == 1 ? finalBbox[i].y1 * scale : finalBbox[i].y1;//top
+        faceInfo[14 * i + 3] = detectType == 1 ? finalBbox[i].x2 * scale : finalBbox[i].x2;//right
+        faceInfo[14 * i + 4] = detectType == 1 ? finalBbox[i].y2 * scale : finalBbox[i].y2;//bottom
         for (int j = 0; j < 10; j++) { // 五个关键点 x1,x2,x3,x4,x5,y1,y2,y3,y4,y5
-            faceInfo[14 * i + 5 + j] = static_cast<int>(finalBbox[i].ppoint[j]);
+            faceInfo[14 * i + 5 + j] = static_cast<int>(detectType == 1 ? finalBbox[i].ppoint[j] * scale : finalBbox[i].ppoint[j]);
         }
     }
 

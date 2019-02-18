@@ -125,7 +125,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                 public void run() {
                                     // 人脸检测
                                     long timeDetectFace = System.currentTimeMillis();
-                                    Face.FaceInfo[] faceInfos = mFace.faceDetect(videoFrame.frame, videoFrame.width, videoFrame.height, colorType);
+                                    Face.FaceInfo[] faceInfos = mFace.faceDetect(Face.DETECTTYPE_MTCNN, videoFrame.frame, videoFrame.width, videoFrame.height, colorType);
                                     timeDetectFace = System.currentTimeMillis() - timeDetectFace;
                                     Log.i(TAG, "detect face time:"+timeDetectFace+"ms");
                                     if(faceInfos !=null && faceInfos.length>0){

@@ -68,6 +68,9 @@ public class Face {
     public static final int MIN_FACE_SIZE_SIDE_SCALE = 6;
     public static final double THRESHOLD = 0.6;
 
+    // 检测类型 0使用mtcnn方法检测，1使用ssd方法检测
+    public static final int DETECTTYPE_MTCNN = 0;
+    public static final int DETECTTYPE_SSD = 1;
     /**
      * nv21转rgb
      * @param yuv420sp
@@ -114,17 +117,18 @@ public class Face {
 
     /**
      * 人脸检测
+     * @param detectType 检测类型 0使用mtcnn方法检测，1使用ssd方法检测
      * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型
      * @return 返回人脸数量、人脸位置坐标、5个关键点
      */
-    public FaceInfo[] faceDetect(byte[] imageDate, int imageWidth , int imageHeight, ColorType colorType){
+    public FaceInfo[] faceDetect(int detectType, byte[] imageDate, int imageWidth , int imageHeight, ColorType colorType){
         if(!isInit){
             throw new RuntimeException("人脸识别引擎未初始化");
         }
-        int[] faceInfo = FaceDetect(pFaceEngine, imageDate, imageWidth , imageHeight, colorType.code);
+        int[] faceInfo = FaceDetect(pFaceEngine, detectType, imageDate, imageWidth , imageHeight, colorType.code);
         if(faceInfo==null || faceInfo[0] <= 0){
             return null;
         }
@@ -244,13 +248,14 @@ public class Face {
 
     /**
      * 人脸检测
+     * @param detectType 检测类型 0使用mtcnn方法检测，1使用ssd方法检测
      * @param imageDate 图片数据 目前只支持nv21、RGB、BGR和RGBA
      * @param imageWidth 图片宽
      * @param imageHeight 图片高
      * @param colorType 图片颜色类型
      * @return 返回人脸数量、人脸位置坐标、5个关键点
      */
-    private native int[] FaceDetect(long pFaceEngine, byte[] imageDate, int imageWidth , int imageHeight, int colorType);
+    private native int[] FaceDetect(long pFaceEngine, int detectType, byte[] imageDate, int imageWidth , int imageHeight, int colorType);
 
     /**
      * 获取人脸特征码

@@ -54,7 +54,7 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
         camera.addCallbackBuffer(data);
         final byte[] frame = Arrays.copyOf(data,data.length);
         long timeDetectFace = System.currentTimeMillis();
-        Face.FaceInfo[] faceInfos = mFace.faceDetect(frame, width, height, Face.ColorType.NV21);
+        Face.FaceInfo[] faceInfos = mFace.faceDetect(Face.DETECTTYPE_MTCNN, frame, width, height, Face.ColorType.NV21);
         timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
         Log.i(TAG, "detect face time:"+timeDetectFace+"ms");

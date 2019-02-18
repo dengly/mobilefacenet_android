@@ -4,6 +4,7 @@
 
 #include "detect.h"
 #include "recognize.h"
+#include "mobilenet_ssd_ncnn.h"
 
 
 #define ColorType_R8G8B8 0x101
@@ -12,13 +13,16 @@
 #define ColorType_NV21 0x104
 
 namespace Face {
-    struct FaceEngine {
+
+    typedef struct FaceEngine {
         int threadNum;
         int32_t minFaceSize;
         // 人脸检测对象指针
         Detect * detect;
         // 人脸比对对象指针
         Recognize * recognize;
+        // 人脸检测对象指针
+        MobilenetSSDDetection * ssdDetection;
     };
 }
 #endif

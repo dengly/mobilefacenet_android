@@ -88,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
             FileUtil.copyBigDataToSD(this.getAssets(), "det3.param");
             FileUtil.copyBigDataToSD(this.getAssets(), "recognition.bin");
             FileUtil.copyBigDataToSD(this.getAssets(), "recognition.param");
+            FileUtil.copyBigDataToSD(this.getAssets(), "mobilenet_ssd_ncnn.proto");
+            FileUtil.copyBigDataToSD(this.getAssets(), "mobilenet_ssd_ncnn.bin");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -123,11 +125,11 @@ public class MainActivity extends AppCompatActivity {
                 byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
 
                 long timeDetectFace = System.currentTimeMillis();
-                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(Face.DETECTTYPE_MTCNN, imageDate,width,height,Face.ColorType.R8G8B8A8);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
                 if(faceInfos !=null && faceInfos.length>0){
-                    faceInfo1.setText("pic1 detect time:"+timeDetectFace);
+                    faceInfo1.setText("pic1 MTCNN detect time:"+timeDetectFace);
                     Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceInfos.length );
                     Bitmap drawBitmap = yourSelectedImage1.copy(Bitmap.Config.ARGB_8888, true);
                     for(int i=0;i<faceInfos.length; i++) {
@@ -176,11 +178,11 @@ public class MainActivity extends AppCompatActivity {
                 byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage2);
 
                 long timeDetectFace = System.currentTimeMillis();
-                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(Face.DETECTTYPE_SSD, imageDate,width,height,Face.ColorType.R8G8B8A8);
                 timeDetectFace = System.currentTimeMillis() - timeDetectFace;
 
                 if(faceInfos !=null && faceInfos.length>0){
-                    faceInfo2.setText("pic2 detect time:"+timeDetectFace);
+                    faceInfo2.setText("pic2 SSD detect time:"+timeDetectFace);
                     Log.i(TAG, "pic width："+width+"height："+height+" face num：" + faceInfos.length );
                     Bitmap drawBitmap = yourSelectedImage2.copy(Bitmap.Config.ARGB_8888, true);
                     for(int i=0;i<faceInfos.length; i++) {
@@ -244,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 int height = yourSelectedImage1.getHeight();
                 byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
 
-                Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+                Face.FaceInfo[] faceInfos = mFace.faceDetect(Face.DETECTTYPE_MTCNN, imageDate,width,height,Face.ColorType.R8G8B8A8);
 
                 if(faceInfos !=null && faceInfos.length>0){
                     Log.d(TAG, "image width:"+width+" height:" + height
@@ -331,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
             byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
             int width = yourSelectedImage1.getWidth();
             int height = yourSelectedImage1.getHeight();
-            Face.FaceInfo[] faceInfos = mFace.faceDetect(imageDate,width,height,Face.ColorType.R8G8B8A8);
+            Face.FaceInfo[] faceInfos = mFace.faceDetect(Face.DETECTTYPE_MTCNN, imageDate,width,height,Face.ColorType.R8G8B8A8);
 
 //                float[] faceFeature1 = mFace.faceFeature(imageDate,width,height,Face.ColorType.R8G8B8A8, faceInfos[0]);
 
