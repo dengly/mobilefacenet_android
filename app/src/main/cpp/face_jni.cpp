@@ -11,6 +11,10 @@
 #include "face.h"
 #include "common.h"
 
+#if NCNN_VULKAN
+#include "gpu.h"
+#endif // NCNN_VULKAN
+
 using namespace Face;
 #define TAG "DetectSo"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
@@ -49,6 +53,10 @@ Java_com_example_l_mobilefacenet_Face_FaceModelInit(JNIEnv *env, jobject instanc
     }
     LOGD("init, tFaceModelDir=%s", tFaceModelDir.c_str());
 
+#if NCNN_VULKAN
+    ncnn::create_gpu_instance();
+#endif // NCNN_VULKAN
+
     struct FaceEngine * pFaceEngine = (struct FaceEngine *)malloc(sizeof(struct FaceEngine));
 
     //没判断是否正确导入，懒得改了
@@ -82,6 +90,10 @@ Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject insta
     delete faceEngine->ssdDetection;
 
     free(faceEngine);
+
+#if NCNN_VULKAN
+    ncnn::destroy_gpu_instance();
+#endif // NCNN_VULKAN
 
     LOGD("人脸检测初始化锁，重新置零");
     return true;

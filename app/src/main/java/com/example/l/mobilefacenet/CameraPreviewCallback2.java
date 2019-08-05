@@ -283,6 +283,7 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                         // 人脸特征提取及比对
                                         long timeDetectFace = System.currentTimeMillis();
                                         float[] feature = mFace.faceFeature(facePersion.faceDate, facePersion.faceDateW, facePersion.faceDateH, colorType);
+                                        Log.i(TAG, "face feature time:"+(System.currentTimeMillis() - timeDetectFace)+"ms");
                                         facePersion.faceDate = null;
                                         if(feature==null || feature.length==0){
                                             return;
@@ -290,7 +291,9 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                         if(persions!=null && persions.size()>0){
                                             facePersion.score = 0;
                                             for(Persion persion : persions){
+                                                timeDetectFace = System.currentTimeMillis();
                                                 double score = mFace.faceRecognize(feature, persion.getFaceFeature());
+                                                Log.i(TAG, "recognize face time:"+(System.currentTimeMillis() - timeDetectFace)+"ms");
                                                 if(score > facePersion.score){
                                                     facePersion.name = persion.getName();
                                                     facePersion.score = score;
@@ -303,8 +306,6 @@ public class CameraPreviewCallback2 implements AbstractCameraPreviewCallback {
                                                 knownMap.put(facePersion.trackId, facePersion);
                                             }
                                         }
-                                        timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-                                        Log.i(TAG, "recognize face time:"+timeDetectFace+"ms");
                                     }
                                 });
                                 it.remove();

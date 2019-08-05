@@ -30,15 +30,28 @@ namespace Face {
 		Rnet.load_model(bin_files[1].data());
 		Onet.load_param(param_files[2].data());
 		Onet.load_model(bin_files[2].data());
+
+#if NCNN_VULKAN
+		Pnet.opt.use_vulkan_compute = 1;
+		Rnet.opt.use_vulkan_compute = 1;
+		Onet.opt.use_vulkan_compute = 1;
+#endif // NCNN_VULKAN
 	}
 
 	Detect::Detect(const std::vector<std::string> param_files, const std::vector<std::string> bin_files) {
+
 		Pnet.load_param(param_files[0].data());
 		Pnet.load_model(bin_files[0].data());
 		Rnet.load_param(param_files[1].data());
 		Rnet.load_model(bin_files[1].data());
 		Onet.load_param(param_files[2].data());
 		Onet.load_model(bin_files[2].data());
+
+#if NCNN_VULKAN
+		Pnet.opt.use_vulkan_compute = 1;
+		Rnet.opt.use_vulkan_compute = 1;
+		Onet.opt.use_vulkan_compute = 1;
+#endif // NCNN_VULKAN
 	}
 
 

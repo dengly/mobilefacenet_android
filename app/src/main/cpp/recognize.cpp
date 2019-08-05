@@ -10,8 +10,13 @@ namespace Face {
 	Recognize::Recognize(const std::string &model_path) {
 		std::string param_files = model_path + "/recognition.param";
 		std::string bin_files = model_path + "/recognition.bin";
+
         Recognet.load_param(param_files.c_str());
         Recognet.load_model(bin_files.c_str());
+
+#if NCNN_VULKAN
+		Recognet.opt.use_vulkan_compute = 1;
+#endif // NCNN_VULKAN
 	}
 
 	Recognize::~Recognize() {

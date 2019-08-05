@@ -13,6 +13,10 @@ namespace Face {
         std::string bin_files = model_path + "mobilenet_ssd_ncnn2.bin";
         SSDDetectionNet.load_param(param_files.c_str());
         SSDDetectionNet.load_model(bin_files.c_str());
+
+#if NCNN_VULKAN
+        SSDDetectionNet.opt.use_vulkan_compute = 1;
+#endif // NCNN_VULKAN
     }
 
     MobilenetSSDDetection::~MobilenetSSDDetection() {

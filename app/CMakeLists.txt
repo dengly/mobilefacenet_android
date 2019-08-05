@@ -25,5 +25,6 @@ find_library(  log-lib log )
 target_link_libraries( Face
                        libncnn
                        jnigraphics
+                       # vulkan
                        z
                        ${log-lib})

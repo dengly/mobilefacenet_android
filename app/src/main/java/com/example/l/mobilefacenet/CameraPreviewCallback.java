@@ -70,8 +70,6 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
                 paint.setStrokeWidth(5);
                 canvas.drawRect(faceInfo.getLeft(), faceInfo.getTop(), faceInfo.getRight(), faceInfo.getBottom(), paint);
 
-                timeDetectFace = System.currentTimeMillis();
-
                 int tempW,tempH;
                 if((faceInfo.getMaxSide()+faceInfo.getLeft()) > width
                         || (faceInfo.getMaxSide()+faceInfo.getTop()) > height){
@@ -85,19 +83,21 @@ public class CameraPreviewCallback implements AbstractCameraPreviewCallback {
                 tempH = tempH % 2 ==0 ? tempH : tempH -1;
                 //byte[] faceDate = Face.cutNV21(videoFrame.frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
                 byte[] faceDate = ImageUtil.cutNV21(frame, faceInfo.getLeft(), faceInfo.getTop(), tempW, tempH, width, height);
+                timeDetectFace = System.currentTimeMillis();
                 float[] feature = mFace.faceFeature(faceDate, tempW, tempH, Face.ColorType.NV21);
+                Log.i(TAG, "face feature time:"+(System.currentTimeMillis() - timeDetectFace)+"ms");
                 double maxScore=0;
                 int index=-1;
                 for(int j =0; j<persions.size(); j++){
                     Persion persion = persions.get(j);
+                    timeDetectFace = System.currentTimeMillis();
                     double score = mFace.faceRecognize(feature, persion.getFaceFeature());
+                    Log.i(TAG, "recognize face time:"+(System.currentTimeMillis() - timeDetectFace)+"ms score:"+maxScore);
                     if(score > maxScore){
                         index = j;
                         maxScore = score;
                     }
                 }
-                timeDetectFace = System.currentTimeMillis() - timeDetectFace;
-                Log.i(TAG, "recognize face time:"+timeDetectFace+"ms score:"+maxScore);
 
                 paint.setColor(Color.GREEN);
                 paint.setTextSize(textSize);

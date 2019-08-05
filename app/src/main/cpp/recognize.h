@@ -4,6 +4,9 @@
 #include <string>
 #include "net.h"
 #include <algorithm>
+#if NCNN_VULKAN
+#include "gpu.h"
+#endif // NCNN_VULKAN
 
 
 namespace Face {

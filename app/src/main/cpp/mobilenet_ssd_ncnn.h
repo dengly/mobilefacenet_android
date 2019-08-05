@@ -10,6 +10,9 @@
 
 #include "net.h"
 #include "common.h"
+#if NCNN_VULKAN
+#include "gpu.h"
+#endif // NCNN_VULKAN
 
 using namespace std;
 using namespace ncnn;
