@@ -5,7 +5,7 @@
 #ifndef MOBILEFACENET_ANDROID_COMMON_H
 #define MOBILEFACENET_ANDROID_COMMON_H
 
-typedef struct Bbox {
+typedef struct Bbox{
     float score;
     int x1; //left
     int y1; //top
@@ -14,6 +14,6 @@ typedef struct Bbox {
     float area;
     float ppoint[10]; // 五个关键点 x1,x2,x3,x4,x5,y1,y2,y3,y4,y5
     float regreCoord[4];
-};
+} Bbox;
 
 #endif //MOBILEFACENET_ANDROID_COMMON_H

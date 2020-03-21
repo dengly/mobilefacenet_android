@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -23,25 +22,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.arcsoft.face.ErrorInfo;
-import com.arcsoft.face.FaceEngine;
-import com.arcsoft.face.FaceFeature;
-import com.arcsoft.face.FaceInfo;
 import com.example.l.mobilefacenet.model.Persion;
-import com.example.l.mobilefacenet.util.Constants;
 import com.example.l.mobilefacenet.util.FileUtil;
 import com.example.l.mobilefacenet.util.ImageUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
-import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = MainActivity.class.getSimpleName();
@@ -286,16 +274,6 @@ public class MainActivity extends AppCompatActivity {
         camera0.setVisibility(View.GONE);
         camera1.setVisibility(View.GONE);
 
-        // 虹软
-        Button faceType0 = (Button) findViewById(R.id.faceType0);
-        faceType0.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                camera0.setVisibility(View.VISIBLE);
-                camera1.setVisibility(View.VISIBLE);
-                faceType=0;
-            }
-        });
         // ncnn
         Button faceType1 = (Button) findViewById(R.id.faceType1);
         faceType1.setOnClickListener(new View.OnClickListener() {
@@ -329,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         faceImage1=null;
-        Persion persion;
+        Persion persion = null;
         if(faceType == 1 || faceType == 2){
             //detect
             byte[] imageDate = ImageUtil.getPixelsRGBA(yourSelectedImage1);
@@ -344,37 +322,6 @@ public class MainActivity extends AppCompatActivity {
             byte[] faceDate = ImageUtil.getPixelsRGBA(faceImage);
             float[] faceFeature1 = mFace.faceFeature(faceDate,faceImage.getWidth(),faceImage.getHeight(),Face.ColorType.R8G8B8A8);
             persion = new Persion(editText.getText().toString(), faceFeature1);
-        }else{
-            FaceEngine faceEngine = new FaceEngine();
-            int code = faceEngine.active(MainActivity.this, Constants.APP_ID, Constants.SDK_KEY);
-            if (code != ErrorInfo.MOK && code!= ErrorInfo.MERR_ASF_ALREADY_ACTIVATED) {
-                Toast.makeText(MainActivity.this, "虹软激活失败-"+code, Toast.LENGTH_LONG).show();
-                return;
-            }
-            code = faceEngine.init(MainActivity.this, FaceEngine.ASF_DETECT_MODE_IMAGE, FaceEngine.ASF_OP_0_HIGHER_EXT, 16, 10, FaceEngine.ASF_FACE_DETECT | FaceEngine.ASF_FACE_RECOGNITION);
-            if (code != ErrorInfo.MOK) {
-                Toast.makeText(MainActivity.this, "虹软初始化失败-"+code, Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            Bitmap bitmap = ImageUtil.alignBitmapForBgr24(yourSelectedImage1);
-            int width = bitmap.getWidth();
-            int height = bitmap.getHeight();
-            byte[] bgr24 = ImageUtil.bitmapToBgr(bitmap);
-            List<FaceInfo> faceInfoList = new ArrayList<>();
-            code = faceEngine.detectFaces(bgr24, width, height, FaceEngine.CP_PAF_BGR24, faceInfoList);
-            if (code != ErrorInfo.MOK) {
-                Toast.makeText(MainActivity.this, "虹软人脸检测失败-"+code, Toast.LENGTH_LONG).show();
-                return;
-            }
-            FaceInfo faceInfo = faceInfoList.get(0);
-            FaceFeature feature = new FaceFeature();
-            code = faceEngine.extractFaceFeature(bgr24, width, height, FaceEngine.CP_PAF_BGR24, faceInfo, feature);
-            if (code != ErrorInfo.MOK) {
-                Toast.makeText(MainActivity.this, "虹软人脸特征提取失败-"+code, Toast.LENGTH_LONG).show();
-                return;
-            }
-            persion = new Persion(editText.getText().toString(), feature.getFeatureData());
         }
 
         Intent intent = new Intent(MainActivity.this, CameraActivity.class);

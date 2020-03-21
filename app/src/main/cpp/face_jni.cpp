@@ -6,13 +6,14 @@
 #include <cstring>
 #include <stdlib.h>
 
-#include "net.h"
-#include "mat.h"
+#include "include/net.h"
+#include "include/mat.h"
+#include "include/allocator.h"
 #include "face.h"
 #include "common.h"
 
 #if NCNN_VULKAN
-#include "gpu.h"
+#include "include/gpu.h"
 #endif // NCNN_VULKAN
 
 using namespace Face;
@@ -57,7 +58,7 @@ Java_com_example_l_mobilefacenet_Face_FaceModelInit(JNIEnv *env, jobject instanc
     ncnn::create_gpu_instance();
 #endif // NCNN_VULKAN
 
-    struct FaceEngine * pFaceEngine = (struct FaceEngine *)malloc(sizeof(struct FaceEngine));
+    struct FaceEngine * pFaceEngine = (struct FaceEngine *)ncnn::fastMalloc(sizeof(struct FaceEngine));
 
     //没判断是否正确导入，懒得改了
     pFaceEngine->threadNum = threadNum;
@@ -89,7 +90,7 @@ Java_com_example_l_mobilefacenet_Face_FaceModelUnInit(JNIEnv *env, jobject insta
     delete faceEngine->recognize;
     delete faceEngine->ssdDetection;
 
-    free(faceEngine);
+    ncnn::fastFree(faceEngine);
 
 #if NCNN_VULKAN
     ncnn::destroy_gpu_instance();
@@ -152,7 +153,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
             ncnn_img = ncnn::Mat::from_pixels(faceImageCharDate, pixel_type, imageWidth, imageHeight) ;
         }else{
             int rgb_len = 3 * imageWidth * imageHeight;
-            pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+            pRgb = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * rgb_len);
             ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
             ncnn_img = ncnn::Mat::from_pixels(pRgb, ncnn::Mat::PIXEL_RGB, imageWidth, imageHeight) ;
         }
@@ -170,7 +171,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
             ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharDate, pixel_type, imageWidth, imageHeight, imageWidth / scale, imageHeight / scale) ;
         }else{
             int rgb_len = 3 * imageWidth * imageHeight;
-            pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+            pRgb = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * rgb_len);
             ncnn::yuv420sp2rgb(faceImageCharDate, imageWidth, imageHeight, pRgb);
             ncnn_img = ncnn::Mat::from_pixels_resize(pRgb, ncnn::Mat::PIXEL_RGB2BGR, imageWidth, imageHeight, imageWidth / scale, imageHeight / scale) ;
         }
@@ -213,7 +214,7 @@ Java_com_example_l_mobilefacenet_Face_FaceDetect(JNIEnv *env, jobject instance, 
 
     env->ReleaseByteArrayElements(imageDate_, imageDate, 0);
     if(colorType == ColorType_NV21){
-        free(pRgb);
+        ncnn::fastFree(pRgb);
     }
     return tFaceInfo;
 }
@@ -246,7 +247,7 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
         ncnn_img = ncnn::Mat::from_pixels_resize(faceImageCharDate, pixel_type, w1, h1, 112, 112);
     }else{
         int rgb_len = 3 * w1 * h1;
-        pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+        pRgb = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * rgb_len);
         ncnn::yuv420sp2rgb(faceImageCharDate, w1, h1, pRgb);
         ncnn_img = ncnn::Mat::from_pixels_resize(pRgb, ncnn::Mat::PIXEL_RGB, w1, h1, 112, 112);
     };
@@ -269,7 +270,7 @@ Java_com_example_l_mobilefacenet_Face_FaceFeature(JNIEnv *env, jobject instance,
     delete[] faceFeature;
 
     if(colorType == ColorType_NV21){
-        free(pRgb);
+        ncnn::fastFree(pRgb);
     }
     return tFaceFeature;
 }
@@ -310,13 +311,13 @@ Java_com_example_l_mobilefacenet_Face_Yuv420sp2Rgb(JNIEnv *env, jclass clazz,
     jbyte * p_yuv420sp = env->GetByteArrayElements(_yuv420sp, NULL);
     unsigned char * pYuv420sp = (unsigned char*)p_yuv420sp;
     int rgb_len = 3 * _w *_h;
-    unsigned char * pRgb = (unsigned char *)malloc(sizeof(unsigned char) * rgb_len);
+    unsigned char * pRgb = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * rgb_len);
     ncnn::yuv420sp2rgb(pYuv420sp, _w, _h, pRgb);
 
     jbyteArray rgb = env->NewByteArray(rgb_len);
     env->SetByteArrayRegion(rgb, 0, rgb_len, (jbyte *)pRgb);
     env->ReleaseByteArrayElements(_yuv420sp, p_yuv420sp, 0);
-    free(pRgb);
+    ncnn::fastFree(pRgb);
     return rgb;
 }
 
@@ -335,11 +336,11 @@ Java_com_example_l_mobilefacenet_Face_CutNV21(JNIEnv *env, jclass clazz, jbyteAr
     int k = 0;
 
     int len = cutW * cutH * 3 / 2 ;
-    unsigned char *tarNv21 = (unsigned char *)malloc(sizeof(unsigned char) * len);
+    unsigned char *tarNv21 = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * len);
     //分配一段内存，用于存储裁剪后的Y分量
-    unsigned char *tmpY = (unsigned char *)malloc(sizeof(unsigned char) * cutW * cutH);
+    unsigned char *tmpY = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * cutW * cutH);
     //分配一段内存，用于存储裁剪后的UV分量
-    unsigned char *tmpUV = (unsigned char *)malloc(sizeof(unsigned char) * cutW * cutH / 2);
+    unsigned char *tmpUV = (unsigned char *)ncnn::fastMalloc(sizeof(unsigned char) * cutW * cutH / 2);
 
     for(i=y; i< cutH + y; i++) {
         // 逐行拷贝Y分量，共拷贝cutW*cutH
@@ -358,9 +359,9 @@ Java_com_example_l_mobilefacenet_Face_CutNV21(JNIEnv *env, jclass clazz, jbyteAr
     jbyteArray rev = env->NewByteArray(len);
     env->SetByteArrayRegion(rev, 0, len, (jbyte *)tarNv21);
     env->ReleaseByteArrayElements(_yuv420sp, p_yuv420sp, 0);
-    free(tarNv21);
-    free(tmpUV);
-    free(tmpY);
+    ncnn::fastFree(tarNv21);
+    ncnn::fastFree(tmpUV);
+    ncnn::fastFree(tmpY);
     return rev;
 }
 

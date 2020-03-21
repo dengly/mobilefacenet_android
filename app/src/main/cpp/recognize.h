@@ -2,10 +2,10 @@
 #ifndef RECOGNIZE_H_
 #define RECOGNIZE_H_
 #include <string>
-#include "net.h"
+#include "include/net.h"
 #include <algorithm>
 #if NCNN_VULKAN
-#include "gpu.h"
+#include "include/gpu.h"
 #endif // NCNN_VULKAN
 
 

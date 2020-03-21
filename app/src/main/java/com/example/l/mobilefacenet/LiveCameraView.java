@@ -108,8 +108,6 @@ public class LiveCameraView extends SurfaceView implements SurfaceHolder.Callbac
                 cameraPreviewCallback = new CameraPreviewCallback();
             }else if(faceType == 1){
                 cameraPreviewCallback = new CameraPreviewCallback2();
-            }else{
-                cameraPreviewCallback = new CameraPreviewCallback3(getContext());
             }
 
             cameraPreviewCallback.setCameraActivity(cameraActivity);

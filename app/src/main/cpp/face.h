@@ -14,7 +14,7 @@
 
 namespace Face {
 
-    typedef struct FaceEngine {
+    typedef struct FaceEngine{
         int threadNum;
         int32_t minFaceSize;
         // 人脸检测对象指针
@@ -23,6 +23,6 @@ namespace Face {
         Recognize * recognize;
         // 人脸检测对象指针
         MobilenetSSDDetection * ssdDetection;
-    };
+    } FaceEngine;
 }
 #endif

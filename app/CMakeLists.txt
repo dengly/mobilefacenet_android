@@ -22,9 +22,11 @@ add_library(Face SHARED ${FACE_COMPILE_CODE})
 
 #添加工程所依赖的库
 find_library(  log-lib log )
+find_library( android-lib android)
 target_link_libraries( Face
                        libncnn
                        jnigraphics
                        # vulkan
                        z
-                       ${log-lib})
+        ${log-lib}
+        ${android-lib})

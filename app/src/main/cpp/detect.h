@@ -3,10 +3,10 @@
 #define DETECT_H_
 #include <string>
 #include <iostream>
-#include "net.h"
+#include "include/net.h"
 #include "common.h"
 #if NCNN_VULKAN
-#include "gpu.h"
+#include "include/gpu.h"
 #endif // NCNN_VULKAN
 
 namespace Face {

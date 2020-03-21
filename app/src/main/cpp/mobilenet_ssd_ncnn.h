@@ -8,10 +8,10 @@
 #include <string>
 #include <algorithm>
 
-#include "net.h"
+#include "include/net.h"
 #include "common.h"
 #if NCNN_VULKAN
-#include "gpu.h"
+#include "include/gpu.h"
 #endif // NCNN_VULKAN
 
 using namespace std;
