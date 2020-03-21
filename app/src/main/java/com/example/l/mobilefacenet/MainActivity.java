@@ -129,8 +129,10 @@ public class MainActivity extends AppCompatActivity {
                         paint.setStyle(Paint.Style.STROKE);
                         paint.setStrokeWidth(5);
                         canvas.drawRect(faceInfos[i].getLeft(), faceInfos[i].getTop(), faceInfos[i].getRight(), faceInfos[i].getBottom(), paint);
-                        for(Point p : faceInfos[i].getPoints()){
-                            paint.setColor(Color.RED);
+                        int[] color = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.BLACK};
+                        for(int index = 0; index<faceInfos[i].getPoints().length; index++){
+                            Point p = faceInfos[i].getPoints()[index];
+                            paint.setColor(color[index]);
                             canvas.drawPoint(p.x,p.y,paint);
                         }
                     }
